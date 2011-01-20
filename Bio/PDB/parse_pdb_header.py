@@ -56,8 +56,7 @@ def _get_references(inl):
         if actref!=" ":
             references.append(actref)
     return references
-    
-      
+     
 # bring dates to format: 1909-01-08
 def _format_date(pdb_date):
     """Converts dates from DD-Mon-YY to YYYY-MM-DD format."""
@@ -139,7 +138,9 @@ def _parse_pdb_header_list(header):
         'structure_reference' : "unknown",
         'journal_reference' : "unknown",
         'author' : "",
-        'compound':{'1':{'misc':''}},'source':{'1':{'misc':''}}}
+        'compound':{'1':{'misc':''}},'source':{'1':{'misc':''}},
+        'biological_unit': [],
+        'SEQRES': {}}
 
     dict['structure_reference'] = _get_references(header)
     dict['journal_reference'] = _get_journal(header)
@@ -147,7 +148,8 @@ def _parse_pdb_header_list(header):
     src_molid="1"
     last_comp_key="misc"
     last_src_key="misc"
-
+    curTrans = -1 # Transformation Matrix (Biological Unit)
+    
     for hh in header:
         h=re.sub("[\s\n\r]*\Z","",hh) # chop linebreaks off
         #key=re.sub("\s.+\s*","",h)
@@ -246,6 +248,28 @@ def _parse_pdb_header_list(header):
                 except:
                     #print 'nonstandard resolution',r
                     dict['resolution']=None
+            # Extract rotation/translation matrices for biological unit assembly
+            elif re.search("REMARK 350   BIOMT.", hh):
+                tokens = hh.split()
+                if tokens[3] == curTrans:
+                    # builds list of [rot_matrix, transl_vector] from BIOMTx record
+                    dict['biological_unit'][-1].append(map(float, tokens[4:]))
+                else:
+                    dict['biological_unit'].append([map(float, tokens[4:])])
+                    curTrans = tokens[3]
+        elif key=="SEQRES": 
+            # http://www.wwpdb.org/documentation/format23/sect3.html#SEQRES
+            # Parses the SEQRES record to a dictionary: {chain, seq}
+            
+            # serNum = hh[8:10] # no use for this atm
+            # numRes = hh[13:17]
+            
+            chainID = hh[11]
+            seq = hh[19:].split()
+            if chainID not in dict['SEQRES']:
+                dict['SEQRES'][chainID] = seq
+            else:
+                dict['SEQRES'][chainID] += seq
         else:
             # print key
             pass
