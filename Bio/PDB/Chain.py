@@ -116,3 +116,36 @@ class Chain(Entity):
             for a in r:
                 yield a
 
+    def renumber_residues(self, res_seed=1, het_seed=0):
+        """ Renumbers the residues in a chain. Keeps gaps in the chain if they exist.
+            Options:
+            
+            - res_seed [int] (default:1)
+            First residue number
+            - het_seed [int] (default:0)
+            First HETATM (other than water) number
+            
+            het_seed 0 means numbering starts from 1000 
+            or (X+1)*1000 if >X*1000 residues in the chain
+        """
+        
+        # First non-hetero residue number
+        fresnum = [i for i in self.get_iterator() if i.id[0] == ' '][0].id[1]
+        last_num = 0
+        
+        for residue in self:
+            if residue.id[0] == ' ': # ATOM
+                displace = res_seed - fresnum
+                last_num = residue.id[1]+displace
+                residue.id = (residue.id[0], residue.id[1]+displace, residue.id[2])
+            elif residue.id[0] == 'W': # WATER
+                residue.id = (residue.id[0], last_num, residue.id[2])
+                last_num += 1
+            else: # Other HETATMs
+                if het_seed == 0:
+                    het_seed = 1000*(int(last_num/1000)+1) if last_num/1000 > 1 else 1000
+                residue.id = (residue.id[0], het_seed, residue.id[2])
+                het_seed += 1
+
+        return (last_num, het_seed)
+            
