@@ -76,3 +76,37 @@ class Structure(Entity):
                     r = seed
                 r += chain_displace-1
                 h = 1000*((h/1000)+1) if h/1000 >= 1 else 0
+        
+    def build_biological_unit(self):
+        """ Uses information from header (REMARK 350) to build full biological
+            unit assembly.
+            Each new subunit is added to the structure as a new MODEL record.
+            Identity matrix is ignored.
+            Returns an integer with the number of matrices used.
+        """
+        
+        from copy import deepcopy # To copy structure object
+        
+        if self.header['biological_unit']:
+            biomt_data = self.header['biological_unit'][1:] # 1st is identity
+        else:
+            raise ValueError( "REMARK 350 field missing in the PDB file")
+
+        temp = [] # container for new models
+        seed = 0 # Seed for model numbers
+        
+        for transformation in biomt_data:
+            M = [i[:-1] for i in transformation] # Rotation Matrix
+            T = [i[-1] for i in transformation] # Translation Vector
+            
+            model = deepcopy(self.child_list[0]) # Bottleneck...
+            seed += 1
+            model.id = seed
+            
+            for atom in model.get_atoms():
+                atom.transform(M, T)
+                
+            temp.append(model)
+        # Add MODELs to structure object
+        map(self.add, temp)
+        return seed
