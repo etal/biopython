@@ -6,7 +6,7 @@
 """Chain class, used in Structure objects."""
 
 from Bio.PDB.Entity import Entity
-
+import warnings
 
 class Chain(Entity):
     def __init__(self, id):
@@ -118,34 +118,60 @@ class Chain(Entity):
 
     def renumber_residues(self, res_seed=1, het_seed=0):
         """ Renumbers the residues in a chain. Keeps gaps in the chain if they exist.
+            
+            Uses SEQRES records to correctly filter HETATMs. In its absence,
+            checks residues for alpha carbons (modified residues have it)
+            and tries to infer which should be considered as ATOMs.
+                        
             Options:
             
             - res_seed [int] (default:1)
             First residue number
             - het_seed [int] (default:0)
-            First HETATM (other than water) number
-            
-            het_seed 0 means numbering starts from 1000 
-            or (X+1)*1000 if >X*1000 residues in the chain
+            First HETATM number. Default means first HETATM will be numbered 1000.
+
         """
         
-        # First non-hetero residue number
-        fresnum = [i for i in self.get_iterator() if i.id[0] == ' '][0].id[1]
+        # Derive list of regular residues from SEQRES
+        # Safe way to catch MSE and alike.
+        h = self.parent.parent.header
+        if 'SEQRES' in h and self.id in h['SEQRES']:
+            seqres = h['SEQRES'][self.id]
+            magic = False
+        else:
+            warnings.warn("WARNING: SEQRES field could not be retrieved for chain %s\n"
+                          "HETATM may be oddly renumbered."
+                          %self.id)
+            magic = True
+        
+        # Calculate displacement from 1st residue
+        residue_list = self.child_list
+        fresnum = residue_list[0].id[1]
+        displace = res_seed - fresnum
+        
+        # To keep track of last residue number
+        # Used when renumbering consecutive chains sequentially 
         last_num = 0
         
-        for residue in self:
+        for residue in residue_list:
+            
             if residue.id[0] == ' ': # ATOM
-                displace = res_seed - fresnum
                 last_num = residue.id[1]+displace
                 residue.id = (residue.id[0], residue.id[1]+displace, residue.id[2])
-            elif residue.id[0] == 'W': # WATER
-                residue.id = (residue.id[0], last_num, residue.id[2])
-                last_num += 1
-            else: # Other HETATMs
-                if het_seed == 0:
-                    het_seed = 1000*(int(last_num/1000)+1) if last_num/1000 > 1 else 1000
-                residue.id = (residue.id[0], het_seed, residue.id[2])
-                het_seed += 1
+            else: # HETATMs
+                if not magic and residue.resname in seqres:
+                    last_num = residue.id[1]+displace
+                    residue.id = (residue.id[0], residue.id[1]+displace, residue.id[2])
+                # Filtering HETATM for modified residues
+                # Assuming all have a CA
+                elif magic and 'CA' in residue.child_dict.keys() and residue['CA'].fullname == ' CA ':
+                    last_num = residue.id[1]+displace
+                    residue.id = (residue.id[0], residue.id[1]+displace, residue.id[2])
+                else:
+                    if het_seed == 0:
+                        het_seed = 1000*(int(last_num/1000)+1) if last_num/1000 > 1 else 1000
+                    residue.id = (residue.id[0], het_seed, residue.id[2])
+                    het_seed += 1
 
         return (last_num, het_seed)
             

@@ -73,9 +73,11 @@ class Structure(Entity):
             for chain in model:
                 r,h = chain.renumber_residues(res_seed=r, het_seed=h)
                 if not sequential:
-                    r = seed
-                r += chain_displace-1
-                h = 1000*((h/1000)+1) if h/1000 >= 1 else 0
+                    r = seed+chain_displace-1
+                    h = 0
+                else:
+                    r += chain_displace
+                
         
     def build_biological_unit(self):
         """ Uses information from header (REMARK 350) to build full biological
