@@ -65,7 +65,6 @@ class Atom:
         self.serial_number=serial_number
         # Dictionary that keeps addictional properties
         self.xtra={}
-
         assert not element or element == element.upper(), element
         self.element = self._assign_element(element)
         self.mass = self._assign_atom_mass()
@@ -75,7 +74,10 @@ class Atom:
         if not element or element.capitalize() not in IUPACData.atom_weights:
             # Inorganic elements have their name shifted left by one position 
             #  (is a convention in PDB, but not part of the standard).
-            if self.fullname[0] != " ":
+            # isdigit() check on last two characters to avoid mis-assignment of 
+            # hydrogens atoms (GLN HE21 for example)
+
+            if self.fullname[0] != " " and not self.fullname[2:].isdigit():
                 putative_element = self.name.strip()
             else:
                 # Hs may have digit in [0]
@@ -90,7 +92,7 @@ class Atom:
                 element = putative_element
             else:
                 msg = "Could not assign element %r for Atom (name=%s) with given element %r" \
-                      %(self.name, element)
+                      % (putative_element, self.name, element)
                 element = ""
             import warnings
             warnings.warn(msg, PDBConstructionWarning)
