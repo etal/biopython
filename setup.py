@@ -23,6 +23,7 @@ http://biopython.org/wiki/Mailing_lists
 """
 import sys
 import os
+import shutil
 
 def get_yes_or_no(question, default):
     if default:
@@ -51,15 +52,19 @@ if sys.version_info[:2] < (2, 4):
           + "yet).  Python %d.%d detected" % sys.version_info[:2])
     sys.exit(-1)
 elif sys.version_info[:2] == (2,4):
-    print ("WARNING - This is the last Biopython release to support Python 2.4")
+    print ("WARNING - Biopython no longer officially supports Python 2.4")
 elif sys.version_info[0] == 3:
-    print("Biopython does not yet officially support Python 3, but you")
-    print("can try it by first using the 2to3 script on our source code.")
-    print("For details on how to use 2to3 with Biopython see README.")
-    print("If you still haven't applied 2to3 to Biopython please abort now.")
-    cont = get_yes_or_no("Do you want to continue this installation?", False)
-    if not cont:
-        sys.exit(-1)
+    print("WARNING - Biopython does not yet officially support Python 3")
+    import do2to3
+    python3_source = "build/py%i.%i" % sys.version_info[:2]
+    if "clean" in sys.argv:
+        if os.path.isdir(python3_source):
+            shutil.rmtree(python3_source)
+        del python3_source #so we don't try to change to it below
+    else:
+        if not os.path.isdir("build"):
+            os.mkdir("build")
+        do2to3.main(".", python3_source)
     
 from distutils.core import setup
 from distutils.core import Command
@@ -67,7 +72,6 @@ from distutils.command.install import install
 from distutils.command.build_py import build_py
 from distutils.command.build_ext import build_ext
 from distutils.extension import Extension
-
 
 _CHECKED = None
 def check_dependencies_once():
@@ -118,6 +122,21 @@ class install_biopython(install):
     if packages are missing.
 
     """
+    # Adds support for the single-version-externally-managed flag
+    # which is present in setuptools but not distutils. pip requires it.
+    # In setuptools this forces installation the "old way" which we
+    # only support here, so we just make it a no-op.
+    user_options = install.user_options + [
+        ('single-version-externally-managed', None,
+            "used by system package builders to create 'flat' eggs"),
+    ]
+    boolean_options = install.boolean_options + [
+        'single-version-externally-managed',
+    ]
+    def initialize_options(self):
+        install.initialize_options(self)
+        self.single_version_externally_managed = None
+
     def run(self):
         if check_dependencies_once():
             # Run the normal install.
@@ -137,28 +156,6 @@ class build_ext_biopython(build_ext):
     def run(self):
         if not check_dependencies_once():
             return
-        # add software that requires NumPy to install
-        # TODO - Convert these for Python 3
-        if is_Numpy_installed() and sys.version_info[0] < 3:
-            import numpy
-            numpy_include_dir = numpy.get_include()
-            self.extensions.append(
-                Extension('Bio.Cluster.cluster',
-                          ['Bio/Cluster/clustermodule.c',
-                           'Bio/Cluster/cluster.c'],
-                          include_dirs=[numpy_include_dir],
-                          ))
-            self.extensions.append(
-                Extension('Bio.KDTree._CKDTree',
-                          ["Bio/KDTree/KDTree.c",
-                           "Bio/KDTree/KDTreemodule.c"],
-                          include_dirs=[numpy_include_dir],
-                          ))
-            self.extensions.append(
-                Extension('Bio.Motif._pwm',
-                          ["Bio/Motif/_pwm.c"],
-                          include_dirs=[numpy_include_dir],
-                          ))
         build_ext.run(self)
 
 
@@ -221,7 +218,6 @@ PACKAGES = [
     'Bio.Data',
     'Bio.Emboss',
     'Bio.Entrez',
-    'Bio.Enzyme',
     'Bio.ExPASy',
     'Bio.FSSP',
     'Bio.GA',
@@ -231,7 +227,6 @@ PACKAGES = [
     'Bio.GA.Selection',
     'Bio.GenBank',
     'Bio.Geo',
-    'Bio.GFF',
     'Bio.Graphics',
     'Bio.Graphics.GenomeDiagram',
     'Bio.HMM',
@@ -259,7 +254,6 @@ PACKAGES = [
     'Bio.PopGen.FDist',
     'Bio.PopGen.GenePop',
     'Bio.PopGen.SimCoal',
-    'Bio.Prosite',
     'Bio.Restriction',
     'Bio.Restriction._Update',
     'Bio.SCOP',
@@ -290,7 +284,15 @@ if os.name == 'java' :
     EXTENSIONS = []
 elif sys.version_info[0] == 3:
     # TODO - Must update our C extensions for Python 3
-    EXTENSIONS = []
+    EXTENSIONS = [
+    Extension('Bio.cpairwise2',
+              ['Bio/cpairwise2module.c'],
+              include_dirs=["Bio"]
+              ),
+    Extension('Bio.Nexus.cnexus',
+              ['Bio/Nexus/cnexus.c']
+              ),
+    ]
 else :
     EXTENSIONS = [
     Extension('Bio.cpairwise2',
@@ -314,6 +316,28 @@ else :
               ),
     ]
 
+#Add extensions that requires NumPy to build
+if is_Numpy_installed():
+    import numpy
+    numpy_include_dir = numpy.get_include()
+    EXTENSIONS.append(
+        Extension('Bio.Cluster.cluster',
+                  ['Bio/Cluster/clustermodule.c',
+                   'Bio/Cluster/cluster.c'],
+                  include_dirs=[numpy_include_dir],
+                  ))
+    EXTENSIONS.append(
+        Extension('Bio.KDTree._CKDTree',
+                  ["Bio/KDTree/KDTree.c",
+                   "Bio/KDTree/KDTreemodule.c"],
+                  include_dirs=[numpy_include_dir],
+                  ))
+    EXTENSIONS.append(
+        Extension('Bio.Motif._pwm',
+                  ["Bio/Motif/_pwm.c"],
+                  include_dirs=[numpy_include_dir],
+                  ))
+
 
 #We now define the Biopython version number in Bio/__init__.py
 #Here we can't use "import Bio" then "Bio.__version__" as that would
@@ -323,27 +347,42 @@ for line in open('Bio/__init__.py'):
     if (line.startswith('__version__')):
         exec(line.strip())
 
-setup(
-    name='biopython',
-    version=__version__,
-    author='The Biopython Consortium',
-    author_email='biopython@biopython.org',
-    url='http://www.biopython.org/',
-    description='Freely available tools for computational molecular biology.',
-    download_url='http://biopython.org/DIST/',
-    cmdclass={
-        "install" : install_biopython,
-        "build_py" : build_py_biopython,
-        "build_ext" : build_ext_biopython,
-        "test" : test_biopython,
-        },
-    packages=PACKAGES,
-    ext_modules=EXTENSIONS,
-    package_data = {'Bio.Entrez': ['DTDs/*.dtd', 'DTDs/*.ent', 'DTDs/*.mod'],
-                    'Bio.PopGen': ['SimCoal/data/*.par'],
-                   },
-    #install_requires = ['numpy>=1.0'],
-    #extras_require = {
-    #    'PDF' : ['reportlab>=2.0']
-    #    }
-    )
+#Simple trick to use the 2to3 converted source under Python 3,
+#change the current directory before/after running setup.
+#Note as a side effect there will be a build folder underneath
+#the python3_source folder.
+old_path = os.getcwd()
+try:
+    src_path = python3_source
+except NameError:
+    src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+os.chdir(src_path)
+sys.path.insert(0, src_path)
+try:
+    setup(
+        name='biopython',
+        version=__version__,
+        author='The Biopython Consortium',
+        author_email='biopython@biopython.org',
+        url='http://www.biopython.org/',
+        description='Freely available tools for computational molecular biology.',
+        download_url='http://biopython.org/DIST/',
+        cmdclass={
+            "install" : install_biopython,
+            "build_py" : build_py_biopython,
+            "build_ext" : build_ext_biopython,
+            "test" : test_biopython,
+            },
+        packages=PACKAGES,
+        ext_modules=EXTENSIONS,
+        package_data = {'Bio.Entrez': ['DTDs/*.dtd', 'DTDs/*.ent', 'DTDs/*.mod'],
+                        'Bio.PopGen': ['SimCoal/data/*.par'],
+                       },
+        #install_requires = ['numpy>=1.0'],
+        #extras_require = {
+        #    'PDF' : ['reportlab>=2.0']
+        #    }
+        )
+finally:
+    del sys.path[0]
+    os.chdir(old_path)

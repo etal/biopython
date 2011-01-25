@@ -84,223 +84,224 @@ class MafftCommandline(AbstractCommandline):
             #**** Algorithm ****
             #Automatically selects an appropriate strategy from L-INS-i, FFT-NS-
             #i and FFT-NS-2, according to data size. Default: off (always FFT-NS-2)
-            _Switch(["--auto", "auto"], ["input"],
+            _Switch(["--auto", "auto"],
                     "Automatically select strategy. Default off."),
             #Distance is calculated based on the number of shared 6mers. Default: on
-            _Switch(["--6merpair", "6merpair", "sixmerpair"], ["input"],
-                     "Distance is calculated based on the number of shared " + \
-                     "6mers. Default: on"),
+            _Switch(["--6merpair", "6merpair", "sixmerpair"],
+                    "Distance is calculated based on the number of shared "
+                    "6mers. Default: on"),
             #All pairwise alignments are computed with the Needleman-Wunsch
             #algorithm. More accurate but slower than --6merpair. Suitable for a
             #set of globally alignable sequences. Applicable to up to ~200
             #sequences. A combination with --maxiterate 1000 is recommended (G-
             #INS-i). Default: off (6mer distance is used)
-            _Switch(["--globalpair", "globalpair"], ["input"],
-                     "All pairwise alignments are computed with the " + \
-                     "Needleman-Wunsch algorithm. Default: off"),
+            _Switch(["--globalpair", "globalpair"],
+                    "All pairwise alignments are computed with the "
+                    "Needleman-Wunsch algorithm. Default: off"),
             #All pairwise alignments are computed with the Smith-Waterman
             #algorithm. More accurate but slower than --6merpair. Suitable for a
             #set of locally alignable sequences. Applicable to up to ~200
             #sequences. A combination with --maxiterate 1000 is recommended (L-
             #INS-i). Default: off (6mer distance is used)
-            _Switch(["--localpair", "localpair"], ["input"],
-                     "All pairwise alignments are computed with the " + \
-                     "Smith-Waterman algorithm. Default: off"),
+            _Switch(["--localpair", "localpair"],
+                    "All pairwise alignments are computed with the "
+                    "Smith-Waterman algorithm. Default: off"),
             #All pairwise alignments are computed with a local algorithm with
             #the generalized affine gap cost (Altschul 1998). More accurate but
             #slower than --6merpair. Suitable when large internal gaps are
             #expected. Applicable to up to ~200 sequences. A combination with --
             #maxiterate 1000 is recommended (E-INS-i). Default: off (6mer
             #distance is used)
-            _Switch(["--genafpair", "genafpair"], ["input"],
-                     "All pairwise alignments are computed with a local " + \
-                     "algorithm with the generalized affine gap cost " + \
-                     "(Altschul 1998). Default: off"),
+            _Switch(["--genafpair", "genafpair"],
+                    "All pairwise alignments are computed with a local "
+                    "algorithm with the generalized affine gap cost "
+                    "(Altschul 1998). Default: off"),
             #All pairwise alignments are computed with FASTA (Pearson and Lipman
             #1988). FASTA is required. Default: off (6mer distance is used)
-            _Switch(["--fastapair", "fastapair"], ["input"],
-                     "All pairwise alignments are computed with FASTA " + \
-                     "(Pearson and Lipman 1988). Default: off"),
+            _Switch(["--fastapair", "fastapair"],
+                    "All pairwise alignments are computed with FASTA "
+                    "(Pearson and Lipman 1988). Default: off"),
             #Weighting factor for the consistency term calculated from pairwise
             #alignments. Valid when either of --blobalpair, --localpair, --
             #genafpair, --fastapair or --blastpair is selected. Default: 2.7
-            _Option(["--weighti", "weighti"], ["input"],
-                     lambda x: isinstance(x, float), 0,
-                     "Weighting factor for the consistency term calculated " + \
-                     "from pairwise alignments. Default: 2.7",
-                     0),
+            _Option(["--weighti", "weighti"],
+                    "Weighting factor for the consistency term calculated "
+                    "from pairwise alignments. Default: 2.7",
+                    checker_function=lambda x: isinstance(x, float),
+                    equate=False),
             #Guide tree is built number times in the progressive stage. Valid
             #with 6mer distance. Default: 2
-            _Option(["--retree", "retree"], ["input"],
-                     lambda x: isinstance(x, int), 0,
-                     "Guide tree is built number times in the progressive " + \
-                     "stage. Valid with 6mer distance. Default: 2",
-                     0),
+            _Option(["--retree", "retree"],
+                    "Guide tree is built number times in the progressive "
+                    "stage. Valid with 6mer distance. Default: 2",
+                    checker_function=lambda x: isinstance(x, int),
+                    equate=False),
             #Number cycles of iterative refinement are performed. Default: 0
-            _Option(["--maxiterate", "maxiterate"], ["input"],
-                     lambda x: isinstance(x, int), 0,
-                     "Number cycles of iterative refinement are performed. " + \
-                     "Default: 0",
-                     0),
+            _Option(["--maxiterate", "maxiterate"],
+                    "Number cycles of iterative refinement are performed. "
+                    "Default: 0",
+                    checker_function=lambda x: isinstance(x, int),
+                    equate=False),
             #Use FFT approximation in group-to-group alignment. Default: on
-            _Switch(["--fft", "fft"], ["input"],
-                    "Use FFT approximation in group-to-group alignment. " + \
+            _Switch(["--fft", "fft"],
+                    "Use FFT approximation in group-to-group alignment. "
                     "Default: on"),
             #Do not use FFT approximation in group-to-group alignment. Default:
             #off
-            _Switch(["--nofft", "nofft"], ["input"],
-                     "Do not use FFT approximation in group-to-group " + \
-                     "alignment. Default: off"),
+            _Switch(["--nofft", "nofft"],
+                    "Do not use FFT approximation in group-to-group "
+                    "alignment. Default: off"),
             #Alignment score is not checked in the iterative refinement stage.
             #Default: off (score is checked)
-            _Switch(["--noscore", "noscore"], ["input"],
-                    "Alignment score is not checked in the iterative " + \
+            _Switch(["--noscore", "noscore"],
+                    "Alignment score is not checked in the iterative "
                     "refinement stage. Default: off (score is checked)"),
             #Use the Myers-Miller (1988) algorithm. Default: automatically
             #turned on when the alignment length exceeds 10,000 (aa/nt).
-            _Switch(["--memsave", "memsave"], ["input"],
-                    "Use the Myers-Miller (1988) algorithm. Default: " + \
-                    "automatically turned on when the alignment length " + \
+            _Switch(["--memsave", "memsave"],
+                    "Use the Myers-Miller (1988) algorithm. Default: "
+                    "automatically turned on when the alignment length "
                     "exceeds 10,000 (aa/nt)."),
             #Use a fast tree-building method (PartTree, Katoh and Toh 2007) with
             #the 6mer distance. Recommended for a large number (> ~10,000) of
             #sequences are input. Default: off
-            _Switch(["--parttree", "parttree"], ["input"],
-                    "Use a fast tree-building method with the 6mer " + \
+            _Switch(["--parttree", "parttree"],
+                    "Use a fast tree-building method with the 6mer "
                     "distance. Default: off"),
             #The PartTree algorithm is used with distances based on DP. Slightly
             #more accurate and slower than --parttree. Recommended for a large
             #number (> ~10,000) of sequences are input. Default: off
-            _Switch(["--dpparttree", "dpparttree"], ["input"],
-                    "The PartTree algorithm is used with distances " + \
+            _Switch(["--dpparttree", "dpparttree"],
+                    "The PartTree algorithm is used with distances "
                     "based on DP. Default: off"),
             #The PartTree algorithm is used with distances based on FASTA.
             #Slightly more accurate and slower than --parttree. Recommended for
             #a large number (> ~10,000) of sequences are input. FASTA is
             #required. Default: off
-            _Switch(["--fastaparttree", "fastaparttree"], ["input"],
-                    "The PartTree algorithm is used with distances based " + \
+            _Switch(["--fastaparttree", "fastaparttree"],
+                    "The PartTree algorithm is used with distances based "
                     "on FASTA. Default: off"),
             #The number of partitions in the PartTree algorithm. Default: 50
-            _Option(["--partsize", "partsize"], ["input"],
-                    lambda x: isinstance(x, int), 0,
-                    "The number of partitions in the PartTree algorithm. " + \
+            _Option(["--partsize", "partsize"],
+                    "The number of partitions in the PartTree algorithm. "
                     "Default: 50",
-                    0),
+                    checker_function=lambda x: isinstance(x, int),
+                    equate=False),
             #Do not make alignment larger than number sequences. Valid only with
             #the --*parttree options. Default: the number of input sequences
-            _Switch(["--groupsize", "groupsize"], ["input"],
-                    "Do not make alignment larger than number sequences. " + \
+            _Switch(["--groupsize", "groupsize"],
+                    "Do not make alignment larger than number sequences. "
                     "Default: the number of input sequences"),
             #**** Parameter ****
             #Gap opening penalty at group-to-group alignment. Default: 1.53
-            _Option(["--op", "op"], ["input"],
-                    lambda x: isinstance(x, float), 0,
-                    "Gap opening penalty at group-to-group alignment. " + \
+            _Option(["--op", "op"],
+                    "Gap opening penalty at group-to-group alignment. "
                     "Default: 1.53",
-                    0),
+                    checker_function=lambda x: isinstance(x, float),
+                    equate=False),
             #Offset value, which works like gap extension penalty, for group-to-
             #group alignment. Deafult: 0.123
-            _Option(["--ep", "ep"], ["input"],
-                    lambda x: isinstance(x, float), 0,
-                    "Offset value, which works like gap extension penalty, " + \
+            _Option(["--ep", "ep"],
+                    "Offset value, which works like gap extension penalty, "
                     "for group-to- group alignment. Default: 0.123",
-                    0),
+                    checker_function=lambda x: isinstance(x, float),
+                    equate=False),
             #Gap opening penalty at local pairwise alignment. Valid when the --
             #localpair or --genafpair option is selected. Default: -2.00
-            _Option(["--lop", "lop"], ["input"],
-                    lambda x: isinstance(x, float), 0,
-                    "Gap opening penalty at local pairwise alignment. " + \
+            _Option(["--lop", "lop"],
+                    "Gap opening penalty at local pairwise alignment. "
                     "Default: 0.123",
-                    0),
+                    checker_function=lambda x: isinstance(x, float),
+                    equate=False),
             #Offset value at local pairwise alignment. Valid when the --
             #localpair or --genafpair option is selected. Default: 0.1
-            _Option(["--lep", "lep"], ["input"],
-                    lambda x: isinstance(x, float), 0,
-                    "Offset value at local pairwise alignment. " + \
+            _Option(["--lep", "lep"],
+                    "Offset value at local pairwise alignment. "
                     "Default: 0.1",
-                    0),
+                    checker_function=lambda x: isinstance(x, float),
+                    equate=False),
             #Gap extension penalty at local pairwise alignment. Valid when the -
             #-localpair or --genafpair option is selected. Default: -0.1
-            _Option(["--lexp", "lexp"], ["input"],
-                    lambda x: isinstance(x, float), 0,
-                    "Gap extension penalty at local pairwise alignment. " + \
+            _Option(["--lexp", "lexp"],
+                    "Gap extension penalty at local pairwise alignment. "
                     "Default: -0.1",
-                    0),
+                    checker_function=lambda x: isinstance(x, float),
+                    equate=False),
             #Gap opening penalty to skip the alignment. Valid when the --
             #genafpair option is selected. Default: -6.00
-            _Option(["--LOP", "LOP"], ["input"],
-                    lambda x: isinstance(x, float), 0,
-                    "Gap opening penalty to skip the alignment. " + \
+            _Option(["--LOP", "LOP"],
+                    "Gap opening penalty to skip the alignment. "
                     "Default: -6.00",
-                    0),
+                    checker_function=lambda x: isinstance(x, float),
+                    equate=False),
             #Gap extension penalty to skip the alignment. Valid when the --
             #genafpair option is selected. Default: 0.00
-            _Option(["--LEXP", "LEXP"], ["input"],
-                    lambda x: isinstance(x, float),
-                    0,
-                    "Gap extension penalty to skip the alignment. " + \
+            _Option(["--LEXP", "LEXP"],
+                    "Gap extension penalty to skip the alignment. "
                     "Default: 0.00",
-                    0),
+                    checker_function=lambda x: isinstance(x, float),
+                    equate=False),
 
             #BLOSUM number matrix (Henikoff and Henikoff 1992) is used.
             #number=30, 45, 62 or 80. Default: 62
-            _Option(["--bl", "bl"], ["input"],
-                    lambda x: x in BLOSUM_MATRICES, 0,
+            _Option(["--bl", "bl"],
                     "BLOSUM number matrix is used. Default: 62",
-                    0),
+                    checker_function=lambda x: x in BLOSUM_MATRICES,
+                    equate=False),
             #JTT PAM number (Jones et al. 1992) matrix is used. number>0.
             #Default: BLOSUM62
-            _Option(["--jtt", "jtt"], ["input"], None, 0,
-                    "JTT PAM number (Jones et al. 1992) matrix is used. " + \
+            _Option(["--jtt", "jtt"],
+                    "JTT PAM number (Jones et al. 1992) matrix is used. "
                     "number>0. Default: BLOSUM62",
-                    0),
+                    equate=False),
             #Transmembrane PAM number (Jones et al. 1994) matrix is used.
             #number>0. Default: BLOSUM62
-            _Option(["--tm", "tm"], ["input"],
-                    os.path.exists, 0,
-                    "Transmembrane PAM number (Jones et al. 1994) " + \
+            _Option(["--tm", "tm"],
+                    "Transmembrane PAM number (Jones et al. 1994) "
                     "matrix is used. number>0. Default: BLOSUM62",
-                    0),
+                    checker_function=os.path.exists,
+                    filename=True,
+                    equate=False),
             #Use a user-defined AA scoring matrix. The format of matrixfile is
             #the same to that of BLAST. Ignored when nucleotide sequences are
             #input. Default: BLOSUM62
-            _Option(["--aamatrix", "aamatrix"], ["input"],
-                    os.path.exists, 0,
+            _Option(["--aamatrix", "aamatrix"],
                     "Use a user-defined AA scoring matrix. "
                     "Default: BLOSUM62",
-                    0),
+                    checker_function=os.path.exists,
+                    filename=True,
+                    equate=False),
             #Incorporate the AA/nuc composition information into the scoring
             #matrix. Default: off
-            _Switch(["--fmodel", "fmodel"], ["input"],
-                    "Incorporate the AA/nuc composition information into"
+            _Switch(["--fmodel", "fmodel"],
+                    "Incorporate the AA/nuc composition information into "
                     "the scoring matrix (True) or not (False, default)"),
             #**** Output ****
             #Output format: clustal format. Default: off (fasta format)
-            _Switch(["--clustalout", "clustalout"], ["input"],
+            _Switch(["--clustalout", "clustalout"],
                     "Output format: clustal (True) or fasta (False, default)"),
             #Output order: same as input. Default: on
-            _Switch(["--inputorder", "inputorder"], ["input"],
+            _Switch(["--inputorder", "inputorder"],
                     "Output order: same as input (True, default) or alignment "
                     "based (False)"),
             #Output order: aligned. Default: off (inputorder)
-            _Switch(["--reorder", "reorder"], ["input"],
+            _Switch(["--reorder", "reorder"],
                     "Output order: aligned (True) or in input order (False, "
                     "default)"),
             #Guide tree is output to the input.tree file. Default: off
-            _Switch(["--treeout", "treeout"], ["input"],
+            _Switch(["--treeout", "treeout"],
                     "Guide tree is output to the input.tree file (True) or "
                     "not (False, default)"),
             #Do not report progress. Default: off
-            _Switch(["--quiet", "quiet"], ["input"],
+            _Switch(["--quiet", "quiet"],
                     "Do not report progress (True) or not (False, default)."),
             #**** Input ****
             #Assume the sequences are nucleotide. Deafult: auto
-            _Switch(["--nuc", "nuc"], ["input"],
+            _Switch(["--nuc", "nuc"],
                     "Assume the sequences are nucleotide (True/False). "
                     "Default: auto"),
             #Assume the sequences are amino acid. Deafult: auto
-            _Switch(["--amino", "amino"], ["input"],
+            _Switch(["--amino", "amino"],
                     "Assume the sequences are amino acid (True/False). "
                     "Default: auto"),
             ###################### SEEDS #####################################
@@ -309,10 +310,12 @@ class MafftCommandline(AbstractCommandline):
             # form: "mafft --seed align1 --seed align2 [etc] input"
             # Effectively for n number of seed alignments. Here we're going to
             # assume 6 extra are enough
-            _Option(["--seed", "seed"], ["input", "file"], os.path.exists, 0,
-                    "Seed alignments given in alignment_n (fasta format) " + \
+            _Option(["--seed", "seed"],
+                    "Seed alignments given in alignment_n (fasta format) "
                     "are aligned with sequences in input.",
-                    0),
+                    checker_function=os.path.exists,
+                    filename=True,
+                    equate=False),
             #The old solution of also defining extra parameters with
             #["--seed", "seed1"] etc worked, but clashes with the recent
             #code in the base class to look for duplicate paramters and raise
@@ -322,12 +325,46 @@ class MafftCommandline(AbstractCommandline):
             #assigned to the value?
             ####################### END SEEDS  ################################
             #The input (must be FASTA format)
-            _Argument(["input"], ["input"], os.path.exists, 1,
-                      "Input file name"),
+            _Argument(["input"],
+                      "Input file name",
+                      checker_function=os.path.exists,
+                      filename=True,
+                      is_required=True),
             ###################################################################
             #mafft-profile takes a second alignment input as an argument:
             #mafft-profile align1 align2
-            _Argument(["input1"], ["input"], os.path.exists, 0,
-                      "Second input file name for the mafft-profile command")
+            _Argument(["input1"],
+                      "Second input file name for the mafft-profile command",
+                      checker_function=os.path.exists,
+                      filename=True),
             ]
         AbstractCommandline.__init__(self, cmd, **kwargs)
+
+def _test():
+    """Run the module's doctests (PRIVATE).
+
+    This will try and locate the unit tests directory, and run the doctests
+    from there in order that the relative paths used in the examples work.
+    """
+    #TODO - Remove os.path checks on input filenames?
+    import doctest
+    import os
+    if os.path.isdir(os.path.join("..","Tests")):
+        print "Runing doctests..."
+        cur_dir = os.path.abspath(os.curdir)
+        os.chdir(os.path.join("..","Tests"))
+        doctest.testmod()
+        os.chdir(cur_dir)
+        del cur_dir
+        print "Done"
+    elif os.path.isdir(os.path.join("Tests")) :
+        print "Runing doctests..."
+        cur_dir = os.path.abspath(os.curdir)
+        os.chdir(os.path.join("Tests"))
+        doctest.testmod()
+        os.chdir(cur_dir)
+        del cur_dir
+        print "Done"
+
+if __name__ == "__main__":
+    _test()

@@ -52,8 +52,10 @@ class A_ExceptionTest(unittest.TestCase):
             # Trigger warnings
             p = PDBParser(PERMISSIVE=True)
             p.get_structure("example", "PDB/a_structure.pdb")
+            self.assertEqual(len(all_warns), 14)
             for wrn, msg in zip(all_warns, [
                 # Expected warning messages:
+<<<<<<< HEAD
                 "Atom object (name=N) without element or element not recognized ('')",
                 "Atom object (name=N) assigned element N based on atom name",
                 "Atom object (name=CA) without element or element not recognized ('')",
@@ -61,6 +63,12 @@ class A_ExceptionTest(unittest.TestCase):
                 "WARNING: atom names  CA  and CA   differ only in spaces at line 17.",
                 "Atom object (name=CA  ) without element or element not recognized ('')",
                 "Atom object (name=CA  ) assigned element CA based on atom name",
+=======
+                "Used element 'N' for Atom (name=N) with given element ''",
+                "Used element 'C' for Atom (name=CA) with given element ''",
+                "Atom names ' CA ' and 'CA  ' differ only in spaces at line 17.",
+                "Used element 'CA' for Atom (name=CA  ) with given element ''",
+>>>>>>> master
                 'Atom N defined twice in residue <Residue ARG het=  resseq=2 icode= > at line 21.',
                 'disordered atom found with blank altloc before line 33.',
                 "Residue (' ', 4, ' ') redefined at line 43.",
@@ -72,7 +80,7 @@ class A_ExceptionTest(unittest.TestCase):
                 "Residue (' ', 81, ' ') redefined at line 646.",
                 'Atom O defined twice in residue <Residue HOH het=W resseq=67 icode= > at line 822.'
                 ]):
-                self.assertTrue(msg in str(wrn))
+                self.assertTrue(msg in str(wrn), str(wrn))
         finally:
             warnings.showwarning = orig_showwarning
 
@@ -767,7 +775,28 @@ class Atom_Element(unittest.TestCase):
         atoms = structure[0]['A'][('H_ MG', 1, ' ')].child_list
         self.assertEqual('MG', atoms[0].element)
         
+
+class IterationTests(unittest.TestCase):        
+    
+    def setUp(self):
+        self.struc = PDBParser(PERMISSIVE=True).get_structure('X', "PDB/a_structure.pdb")
         
+    def test_get_chains(self):
+        """Yields chains from different models separately."""
+        chains = [chain.id for chain in self.struc.get_chains()]
+        self.assertEqual(chains, ['A','A', 'B', ' '])
+        
+    def test_get_residues(self):
+        """Yields all residues from all models."""
+        residues = [resi.id for resi in self.struc.get_residues()]
+        self.assertEqual(len(residues), 167)
+
+    def test_get_atoms(self):
+        """Yields all atoms from the structure, excluding duplicates and ALTLOCs which are not parsed."""
+        atoms = ["%12s"%str((atom.id, atom.altloc)) for atom in self.struc.get_atoms()]
+        self.assertEqual(len(atoms), 756)
+
+
 #class RenumberTests(unittest.TestCase):
 #    """Tests renumbering of structures."""
 #    

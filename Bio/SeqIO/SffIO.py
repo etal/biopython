@@ -611,7 +611,7 @@ def _sff_read_raw_record(handle, number_of_flows_per_read):
         raise ValueError("Malformed read header, says length is %i" \
                          % read_header_length)
     #now the four clip values (4H = 8 bytes), and read name
-    raw += _bytes_to_string(handle.read(8 + name_length))
+    raw += handle.read(8 + name_length)
     #and any padding (remainder of header)
     padding = read_header_length - read_header_size - 8 - name_length
     pad = handle.read(padding)
@@ -821,7 +821,7 @@ class SffWriter(SequenceWriter):
             #No records -> empty SFF file (or an error)?
             #We can't write a header without the flow information.
             #return 0
-            raise ValueError("Need at least one record for SFF output")
+            raise ValueError("Must have at least one sequence")
         try:
             self._key_sequence = _as_bytes(record.annotations["flow_key"])
             self._flow_chars = _as_bytes(record.annotations["flow_chars"])

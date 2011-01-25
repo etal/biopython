@@ -112,14 +112,20 @@ from Bio.SwissProt.
 
 Bio.Prosite and Bio.Enzyme
 ==========================
-Declared obsolete in Release 1.50, and deprecated in Release 1.53.
-Most of the functionality has moved to Bio.ExPASy.Prosite and
+Declared obsolete in Release 1.50, deprecated in Release 1.53, and removed in
+Release 1.57. Most of the functionality has moved to Bio.ExPASy.Prosite and
 Bio.ExPASy.Enzyme, respectively.
 
-Bio.EZRetrieve, Bio.NetCatch, Bio.File.SGMLHandle, Bio.FilteredReader
-=====================================================================
-Declared obsolete in Release 1.50, deprecated in Release 1.52, removed in
+Bio.EZRetrieve, Bio.NetCatch, Bio.FilteredReader
+================================================
+Declared obsolete in Release 1.50, deprecated in Release 1.52, and removed in
 Release 1.56.
+
+Bio.File
+========
+Bio.File.SGMLHandle was declared obsolete in Release 1.50, deprecated in
+Release 1.52, and removed in Release 1.56. Bio.File.SGMLStripper was deprecated
+in Release 1.57.
 
 Bio.Graphics.GenomeDiagram and colour/color, centre/center
 ==========================================================
@@ -158,7 +164,8 @@ Bio.mathfns, Bio.stringfns and Bio.listfns (and their C code variants)
 Declared obsolete in Release 1.49. Bio.mathfns and Bio.stringfns were
 deprecated in Release 1.50, Bio.listfns was deprecated in Release 1.53.
 The three C implementations were all removed in Release 1.53. Bio.mathfns
-and Bio.stringfns were removed in Release 1.55.
+and Bio.stringfns were removed in Release 1.55. Bio.listfns was removed in
+Release 1.57.
 
 Bio.distance (and Bio.cdistance)
 ================================
@@ -383,8 +390,9 @@ The functions 'forward_complement' and 'antiparallel' in Bio.GFF.easy have
 been deprecated as of Release 1.31, and removed in Release 1.43.
 Use the functions 'complement' and 'reverse_complement' in Bio.Seq instead.
 
-The whole of the old Bio.GFF module was deprecated in Release 1.53
-(with the intention of reusing this name space for a GFF parser).
+The whole of the old Bio.GFF module was deprecated in Release 1.53, and removed
+in Release 1.57 (with the intention of reusing this name space for a GFF
+parser).
 
 Bio.sequtils
 ============
@@ -433,14 +441,16 @@ Release 1.56, and removed in Release 1.57.
 Bio.Motif
 =========
 CompareAceParser and CompareAceConsumer from Bio.Motif.Parsers.AlignAce were
-declared obsolete in Release 1.53, and deprecated in Release 1.55 final.
+declared obsolete in Release 1.53, deprecated in Release 1.55 final, and removed
+in Release 1.57.
 AlignAceConsumer, AlignAceParser, and AlignAceScanner were declared obsolete
 in Release 1.53 and deprecated in Release 1.55 final; their functionality is
 now available through a read() function in Bio.Motif.Parsers.AlignAce.
-MEMEParser, _MEMEScanner, _MEMEConsumer, _MASTConsumer, MASTParser, _MASTScanner,
-and MASTRecord were declared obsolete in Release 1.54 and deprecated in Release
-1.55 final; their functionality is now available through a read() function in
-Bio.Motif.Parsers.MEME and Bio.Motif.Parsers.MAST, respectively.
+MEMEParser, _MEMEScanner, _MEMEConsumer, _MASTConsumer, MASTParser,
+_MASTScanner, and MASTRecord were declared obsolete in Release 1.54 and
+deprecated in Release 1.55 final; their functionality is now available through
+a read() function in Bio.Motif.Parsers.MEME and Bio.Motif.Parsers.MAST,
+respectively.
 
 Bio.Compass
 ===========
@@ -468,3 +478,13 @@ Bio.UniGene were declared obsolete in Release 1.54, and deprecated in Release
 1.55 final. Their functionality is now available through a read() and a parse()
 function in Bio.UniGene.
 
+Bio.SubsMat
+===========
+The methods letter_sum and all_letters_sum were removed from the SeqMat class in
+Bio.SubsMat in Release 1.57.
+
+Bio.Align
+=========
+The methods get_column and add_sequence of the MultipleSeqAlignment class were
+deprecated in Release 1.57. The Alignment class in Bio.Align.Generic and its
+method get_seq_by_num were deprecated in Release 1.57.

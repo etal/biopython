@@ -18,9 +18,6 @@ These modules provide wrapper classes for command line tools to help you
 construct command line strings by setting the values of each parameter.
 The finished command line strings are then normally invoked via the built-in
 Python module subprocess.
-
-This module also includes some deprecated functionality (function generic_run
-and class ApplicationResult) which should not be used anymore.
 """
 import os, sys
 import StringIO
@@ -465,11 +462,10 @@ class _Option(_AbstractParameter):
     is assumed to be a "human readable" name describing the option in one
     word.
 
-    o param_types -- a list of string describing the type of parameter, 
-    which can help let programs know how to use it. Example descriptions
-    include 'input', 'output', 'file'.  Note that if 'file' is included,
-    these argument values will automatically be escaped if the filename
-    contains spaces.
+    o description -- a description of the option.
+
+    o filename -- True if this argument is a filename and should be
+    automatically quoted if it contains spaces.
 
     o checker_function -- a reference to a function that will determine
     if a given value is valid for this parameter. This function can either
@@ -478,8 +474,6 @@ class _Option(_AbstractParameter):
 
     o equate -- should an equals sign be inserted if a value is used?
 
-    o description -- a description of the option.
-
     o is_required -- a flag to indicate if the parameter must be set for
     the program to be run.
 
@@ -487,10 +481,12 @@ class _Option(_AbstractParameter):
 
     o value -- the value of a parameter
     """
-    def __init__(self, names = [], types = [], checker_function = None, 
-                 is_required = False, description = "", equate=True):
+    def __init__(self, names, description, filename=False, checker_function=None,
+                 is_required=False, equate=True):
         self.names = names
-        self.param_types = types
+        assert isinstance(description, basestring), \
+               "%r for %s" % (description, names[-1])
+        self.is_filename = filename
         self.checker_function = checker_function
         self.description = description
         self.equate = equate
@@ -510,7 +506,7 @@ class _Option(_AbstractParameter):
         # now made explicitly when setting up the option.
         if self.value is None:
             return "%s " % self.names[0]
-        if "file" in self.param_types:
+        if self.is_filename:
             v = _escape_filename(self.value)
         else:
             v = str(self.value)
@@ -533,21 +529,14 @@ class _Switch(_AbstractParameter):
     is assumed to be a "human readable" name describing the option in one
     word.
 
-    o param_types -- a list of string describing the type of parameter, 
-    which can help let programs know how to use it. Example descriptions
-    include 'input', 'output', 'file'.  Note that if 'file' is included,
-    these argument values will automatically be escaped if the filename
-    contains spaces.
-
     o description -- a description of the option.
 
     o is_set -- if the parameter has been set
 
     NOTE - There is no value attribute, see is_set instead,
     """
-    def __init__(self, names = [], types = [], description = ""):
+    def __init__(self, names, description):
         self.names = names
-        self.param_types = types
         self.description = description
         self.is_set = False
         self.is_required = False
@@ -566,10 +555,12 @@ class _Switch(_AbstractParameter):
 class _Argument(_AbstractParameter):
     """Represent an argument on a commandline.
     """
-    def __init__(self, names = [], types = [], checker_function = None, 
-                 is_required = False, description = ""):
+    def __init__(self, names, description, filename=False,
+                 checker_function=None, is_required=False):
         self.names = names
-        self.param_types = types
+        assert isinstance(description, basestring), \
+               "%r for %s" % (description, names[-1])
+        self.is_filename = filename
         self.checker_function = checker_function
         self.description = description
         self.is_required = is_required
@@ -579,6 +570,8 @@ class _Argument(_AbstractParameter):
     def __str__(self):
         if self.value is None:
             return " "
+        elif self.is_filename:
+            return "%s " % _escape_filename(self.value)
         else:
             return "%s " % self.value
 
