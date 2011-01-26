@@ -104,6 +104,40 @@ class Structure(Entity):
         map(self.add, temp)
         return seed
 
+    def apply_transformation_matrix(self):
+        """ Uses information from header (REMARK 350) to build full biological
+            unit assembly.
+            Returns a new Structure object with each subunit added as a new Model.
+        """
+        # Create new Structure object to hold translated/rotated subunits
+        from Bio.PDB.StructureBuilder import StructureBuilder
+        structure_builder=StructureBuilder()
+        s = structure_builder.init_structure("BioUnit_"+self.id)
+        structure_builder.init_seg(' ') # Empty Segment Id
+        
+        # Retrieve BIOMT Data
+        if self.header['biological_unit']:
+            biomt_data = self.header['biological_unit']
+        else:
+            raise ValueError( "REMARK 350 field missing in the PDB file")
+        
+        # Process BIOMT data and apply transformations
+        for index, transformation in enumerate(biomt_data, start=1):
+            structure_builder.init_model(index)
+            M = [i[:-1] for i in transformation] # Rotation Matrix
+            T = [i[-1] for i in transformation] # Translation Vector
+
+            for chain in self.get_chains():
+                structure_builder.init_chain(chain.id)
+                for residue in chain:
+                    structure_builder.init_residue(residue.resname, residue.id[0], residue.id[1], residue.id[2])
+                    for atom in residue:
+                        a = structure_builder.init_atom(atom.name, atom.coord, atom.bfactor, atom.occupancy, atom.altloc, atom.fullname, atom.serial_number, atom.element)
+                        structure_builder.atom.transform(M, T)
+
+        # Return new Structure Object
+        return structure_builder.get_structure()
+
     def remove_disordered_atoms(self, keep_loc='A', verbose=False):
         """
         Substitutes DisorderedAtom objects for Atom object.
