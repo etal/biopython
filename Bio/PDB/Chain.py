@@ -6,7 +6,7 @@
 """Chain class, used in Structure objects."""
 
 from Bio.PDB.Entity import Entity
-
+import warnings
 
 class Chain(Entity):
     def __init__(self, id):
@@ -116,3 +116,56 @@ class Chain(Entity):
             for a in r:
                 yield a
 
+    def renumber_residues(self, res_init=1, het_init=0):
+        """ Renumbers the residues in a chain. Keeps gaps in the chain if they exist.
+            
+            Uses SEQRES records to correctly filter HETATMs. In its absence,
+            checks residues for alpha carbons (modified residues have it)
+            and tries to infer which should be considered as ATOMs.
+                        
+            Options:
+            
+            - res_init [int] (default:1)
+            First residue number
+            - het_init [int] (default:0)
+            First HETATM number. Default means first HETATM will be numbered 1000.
+
+        """
+        # Derive list of regular residues from SEQRES
+        # Safe way to catch MSE and alike.
+        h = self.parent.parent.header
+        if 'SEQRES' in h and self.id in h['SEQRES']:
+            seqres = h['SEQRES'][self.id]
+            filter_by_ca = False
+        else:
+            warnings.warn("WARNING: SEQRES field could not be retrieved for chain %s\n"
+                          "HETATM may be oddly renumbered."
+                          %self.id)
+            filter_by_ca = True
+        
+        # Calculate displacement value from 1st residue
+        residue_list = self.child_list
+        displace = res_init - residue_list[0].id[1]
+        
+        # To keep track of last residue number
+        # Used when renumbering consecutive chains sequentially 
+        last_num = 0
+        
+        for residue in residue_list:
+            # ATOMs and Non-HOH / Non-Ions / Non-ModResidues HETATMs
+            if  (residue.id[0] == ' ') or \
+                (not filter_by_ca and residue.resname in seqres) or \
+                (filter_by_ca and 'CA' in residue.child_dict.keys() and residue['CA'].fullname == ' CA '):
+                
+                last_num = residue.id[1]+displace
+                residue.id = (residue.id[0], residue.id[1]+displace, residue.id[2])
+            else: # HOH, Ions, and other HETATMs
+                # het_init is 0 by default and not none or false
+                # to allow numbering simple sum if renumbering several chains sequentially
+                if het_init == 0:
+                    het_init = 1000*(int(last_num/1000)+1) if last_num > 1000 else 1000
+                residue.id = (residue.id[0], het_init, residue.id[2])
+                het_init += 1
+
+        return (last_num, het_init)
+            
