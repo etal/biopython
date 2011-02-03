@@ -132,47 +132,73 @@ class Structure(Entity):
                 for residue in chain:
                     structure_builder.init_residue(residue.resname, residue.id[0], residue.id[1], residue.id[2])
                     for atom in residue:
-                        a = structure_builder.init_atom(atom.name, atom.coord, atom.bfactor, atom.occupancy, atom.altloc, atom.fullname, atom.serial_number, atom.element)
+                        a = structure_builder.init_atom(atom.name, atom.coord, atom.bfactor, \
+                                                        atom.occupancy, atom.altloc, atom.fullname, \
+                                                        atom.serial_number, atom.element)
                         structure_builder.atom.transform(M, T)
 
         # Return new Structure Object
         return structure_builder.get_structure()
 
-    def remove_disordered_atoms(self, keep_loc='A', verbose=False):
+    def remove_disordered_atoms(self, keep_location="Average"):
         """
-        Substitutes DisorderedAtom objects for Atom object.
-        Choice of Atom to keep defined by keep_loc argument.
+        Substitutes DisorderedAtom objects for Atom object. The new Atom object is based
+        either on a user-defined location, the highest occupancy, or a weighted average of all
+        available occupancies (default).
+        
+        Returns a list of tuples with information on each disordered atom, 
+        namely the residue name, number, and atom name.
 
         Originally based on the solution by Ramon Crehuet in the Biopython Wiki.
         http://www.biopython.org/wiki/Remove_PDB_disordered_atoms
 
         Arguments:
 
-        - keep_loc, string, alternate location to keep (A has the highest occupancy). [A is default]
-        - verbose, boolean, if True outputs info on each DisorderedAtom found.
-
+        - keep_loc [str] alternate location to keep:
+            . None/False - keeps highest occupancy
+            . Average - sets the position of the Atom object by a weighted average over the 
+                        several disordered locations and their occupancies.
+            . A/B/.../Z - keeps this particular location for all atoms.
         """
 
-        substitutions = 0
-        for residue in self.get_residues():
+        substitutions = []
+                
+        # residue.is_disordered equals 1 for residues with multiple occupancies
+        # Using it as a filter to avoid DisorderedResidues (point mutations)
+        for residue in [res for res in self.get_residues() if res.is_disordered() == 1]:
+            # filter disordered atoms
             disordered = [a for a in residue if a.is_disordered()]
-            if disordered:
-                substitutions += 1
-                if verbose:
-                    print "Residue %s:%s has %s disordered atoms: %s" % (residue.resname, residue.get_id()[1],
-                                                                         len(disordered),
-                                                                         '/'.join([ d.name for d in disordered ])
-                                                                        )
-                for atom in disordered:
-                    try:
-                        a = atom.disordered_get(keep_loc)
-                    except KeyError: # Descriptive Enough
-                        print "Atomic Position %s not found for %s (%s:%s)" % (keep_loc,
-                                                                              atom,
-                                                                              residue.resname,
-                                                                              residue.get_id()[1])
-                        continue
-                    a.disordered_flag = 0
-                    residue.detach_child(atom.name)
-                    residue.add(a)
+            substitutions.append((residue.resname, residue.id[1], disordered))   
+            for atom in disordered:
+                try:
+                    if not keep_location: # Keep highest occupancy
+                        max_occ = [da.loc for da in atom if da.occupancy == atom.last_occupancy][0]
+                        a = atom.disordered_get(max_occ)
+                    elif keep_location == 'Average':
+                        # Average coords weighted by occupancy
+                        wcoord = [0,0,0]
+                        # name, disordered atom
+                        for n,da in atom.child_dict.iteritems():
+                            wcoord[0] += da.coord[0]*da.occupancy
+                            wcoord[1] += da.coord[1]*da.occupancy
+                            wcoord[2] += da.coord[2]*da.occupancy
+                        a = atom.disordered_get(n)
+                        a.set_occupancy(1.00)
+                        a.coord = wcoord
+                    else:
+                        # User defined loc
+                        a = atom.disordered_get(keep_location)
+                except KeyError:
+                    raise KeyError("Atomic Position %s not found for %s (%s:%s)" \
+                    % (keep_location,
+                        atom,
+                        residue.resname,
+                        residue.get_id()[1]))
+                # Remove DisorderedAtom, add Atom.
+                a.disordered_flag = 0
+                a.altloc = " "
+                residue.detach_child(atom.name)
+                residue.add(a)
+            # Fix Residue disordered level.
+            residue.disordered = 0
         return substitutions

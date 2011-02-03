@@ -108,14 +108,26 @@ class Chain(Entity):
         id=self._translate_id(id)
         return Entity.has_id(self, id)
 
+    
+    def _renumber_single_residue(self, old_id, new_id):
+        """
+        To Allow custom renumbering of residues.
+        """
+        # Identify residue
+        residue = self[old_id]
 
+        # Change old references in both dict and list
+        del self.child_dict[residue.id]
+        residue.id = new_id
+        self.child_dict[residue.id] = residue
+    
     # Public
 
     def get_atoms(self):
         for r in self:
             for a in r:
                 yield a
-
+    
     def renumber_residues(self, res_init=1, het_init=0):
         """ Renumbers the residues in a chain. Keeps gaps in the chain if they exist.
             
@@ -158,14 +170,16 @@ class Chain(Entity):
                 (filter_by_ca and 'CA' in residue.child_dict.keys() and residue['CA'].fullname == ' CA '):
                 
                 last_num = residue.id[1]+displace
-                residue.id = (residue.id[0], residue.id[1]+displace, residue.id[2])
+                new_id = (residue.id[0], residue.id[1]+displace, residue.id[2])
             else: # HOH, Ions, and other HETATMs
                 # het_init is 0 by default and not none or false
                 # to allow numbering simple sum if renumbering several chains sequentially
                 if het_init == 0:
                     het_init = 1000*(int(last_num/1000)+1) if last_num > 1000 else 1000
-                residue.id = (residue.id[0], het_init, residue.id[2])
+                new_id = (residue.id[0], het_init, residue.id[2])
                 het_init += 1
+
+            self._renumber_single_residue(residue.id, new_id)
 
         return (last_num, het_init)
             
