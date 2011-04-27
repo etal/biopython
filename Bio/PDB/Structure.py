@@ -177,13 +177,17 @@ class Structure(Entity):
                     elif keep_location == 'Average':
                         # Average coords weighted by occupancy
                         wcoord = [0,0,0]
-                        # name, disordered atom
+                        # Global Occupancy to normalize below
+                        g_occ = sum([da.occupancy for n,da in atom.child_dict.iteritems()])
+                        # name, disordered atom 
                         for n,da in atom.child_dict.iteritems():
-                            wcoord[0] += da.coord[0]*da.occupancy
-                            wcoord[1] += da.coord[1]*da.occupancy
-                            wcoord[2] += da.coord[2]*da.occupancy
+                            norm_occ = da.occupancy/g_occ
+                            wcoord[0] += da.coord[0]*norm_occ
+                            wcoord[1] += da.coord[1]*norm_occ
+                            wcoord[2] += da.coord[2]*norm_occ
                         a = atom.disordered_get(n)
                         a.set_occupancy(1.00)
+                        a.set_bfactor(0.00)
                         a.coord = wcoord
                     else:
                         # User defined loc
