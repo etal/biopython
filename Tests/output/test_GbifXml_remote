@@ -1,0 +1,365 @@
+================================================
+Remote access to GBIF; classifying points into areas
+================================================
+
+GbifXmlTree.__init__(): No xmltree, so creating empty object.
+
+Running get_all_records_by_increment(params, inc)
+
+Running get_numhits(params)...
+Accessing GBIF with access_gbif...
+# hits on "scientificname=Genlisea*&format=darwin" = 169
+#hits =  169
+Downloading records #0-99 of 169 (-1).
+{'startindex': '0', 'scientificname': 'Genlisea*', 'maxresults': '100', 'format': 'darwin'}
+Accessing GBIF with access_gbif...
+
+Running extract_all_matching_elements(start_element, TaxonOccurrence)
+Downloading records #100-168 of 169 (-1).
+{'startindex': '100', 'scientificname': 'Genlisea*', 'maxresults': '69', 'format': 'darwin'}
+Accessing GBIF with access_gbif...
+
+Running extract_all_matching_elements(start_element, TaxonOccurrence)
+37 of 170 fell inside area "NorthernHemisphere".
+1       62755172        498212  Venezuela       1.53    -65.82  1987-10-26      5912787
+                Genlisea guianensis N.E. Br.    None    None    guianensis      True    1987-10-26      NorthernHemisphere
+2       62755575        1093087 Bolivia None    None    1996-08-15      5912787
+                Genlisea guianensis N.E. Br.    None    None    guianensis      True    1996-08-15      None
+3       62755175        498281  Tanzania        -9.58   34.62   1987-11-08      5912790
+                Genlisea margaretae Hutch.      None    None    margaretae      True    1987-11-08      None
+4       62755171        498206  Venezuela       4.5     -61.58  1985-11-08      5912787
+                Genlisea guianensis N.E. Br.    None    None    guianensis      True    1985-11-08      NorthernHemisphere
+5       94639445        2452128 Brazil  None    None    None    17736319
+                Genlisea aurea A. St.-Hil.      None    None    aurea   True    None    None
+6       94639779        3063640 Brazil  None    None    1976-09-08      17736319
+                Genlisea aurea A. St.-Hil.      None    None    aurea   True    1976-09-08      None
+7       202012005       3397497 Brazil  None    None    None    17736319
+                Genlisea aurea A. St.-Hil.      None    None    aurea   True    None    None
+8       62755173        498229  Malawi  None    None    1985-12-10      5912789
+                Genlisea hispidula Stapf        None    None    hispidula       True    1985-12-10      None
+9       62755180        498355  Malawi  None    None    None    5912784
+                Genlisea A. St.-Hil.    None    None    Undesignated    True    None    None
+10      202012004       3397199 Brazil  13.25   -41.9   None    5912914
+                Genlisea filiformis A. St.-Hil. None    None    filiformis      True    None    NorthernHemisphere
+11      62755478        799222  Venezuela       4.5     -61.5   1985-11-01      5912914
+                Genlisea filiformis A. St.-Hil. None    None    filiformis      True    1985-11-01      NorthernHemisphere
+12      62755174        498264  Venezuela       5.63    -62.53  1982-11-27      5912787
+                Genlisea guianensis N.E. Br.    None    None    guianensis      True    1982-11-27      NorthernHemisphere
+13      62755177        498318  Tanzania        -8.52   35.17   1987-10-20      5912791
+                Genlisea glandulosissima R.E. Fr.       None    None    glandulosissima True    1987-10-20      None
+14      62755610        1187932 Gabon   -2.5    9.73    1997-05-05      5912792
+                Genlisea africana Oliv. None    None    africana        True    1997-05-05      None
+15      94639764        3061446 Venezuela       4.75    -61.08  1982-12-02      5912787
+                Genlisea guianensis N.E. Br.    None    None    guianensis      True    1982-12-02      NorthernHemisphere
+16      94639754        3059758 Brazil  None    None    1971-01-25      5912784
+                Genlisea A. St.-Hil.    None    None    Undesignated    True    1971-01-25      None
+17      62755179        498333  Tanzania        -8.52   35.17   1987-10-20      5912792
+                Genlisea africana Oliv. None    None    africana        True    1987-10-20      None
+18      62755861        1599094 Brazil  None    None    1988-03-19      5913047
+                Genlisea lobata Fromm   None    None    lobata  True    1988-03-19      None
+19      94639788        3064155 Colombia        None    None    1924-09-17      5912914
+                Genlisea filiformis A. St.-Hil. None    None    filiformis      True    1924-09-17      None
+20      94640398        3142530 Zambia  -11.2   31.75   1938-07-19      5912791
+                Genlisea glandulosissima R.E. Fr.       None    None    glandulosissima True    1938-07-19      None
+21      94640397        3142529 Zambia  -10.82  29.95   None    5912791
+                Genlisea glandulosissima R.E. Fr.       None    None    glandulosissima True    None    None
+22      62755168        498170  Venezuela       4.5     -61.58  1985-10-18      5912787
+                Genlisea guianensis N.E. Br.    None    None    guianensis      True    1985-10-18      NorthernHemisphere
+23      62755170        498201  Venezuela       40.5    -61.58  1985-11-02      5912787
+                Genlisea guianensis N.E. Br.    None    None    guianensis      True    1985-11-02      None
+24      62755167        498169  Venezuela       5.67    -61.5   1985-04-03      5912787
+                Genlisea guianensis N.E. Br.    None    None    guianensis      True    1985-04-03      NorthernHemisphere
+25      94639759        3060262 Venezuela       4.42    -61.65  1978-12-18      5912787
+                Genlisea guianensis N.E. Br.    None    None    guianensis      True    1978-12-18      NorthernHemisphere
+26      202012002       3395568 Brazil  None    None    None    17736319
+                Genlisea aurea A. St.-Hil.      None    None    aurea   True    None    None
+27      62755181        498363  Venezuela       7.58    -66.25  1985-11-07      5912787
+                Genlisea guianensis N.E. Br.    None    None    guianensis      True    1985-11-07      NorthernHemisphere
+28      62755585        1123800 Nicaragua       14.15   -83.48  1978-10-06      5912914
+                Genlisea filiformis A. St.-Hil. None    None    filiformis      True    1978-10-06      NorthernHemisphere
+29      94640416        3202188 Gabon   None    None    2006-04-16      5912784
+                Genlisea A. St.-Hil.    None    None    Undesignated    True    2006-04-16      None
+30      94639797        3080566 Brazil  None    None    None    5912914
+                Genlisea filiformis A. St.-Hil. None    None    filiformis      True    None    None
+31      202012001       3394692 Brazil  -12.45  -41.47  1980-05-21      5912914
+                Genlisea filiformis A. St.-Hil. None    None    filiformis      True    1980-05-21      None
+32      186619863       19444   Sweden  59.370041       18.047104       None    20871688
+                Genlisea lobata None    None    lobata  True    None    NorthernHemisphere
+33      67018162        2001.0118       Brazil  None    None    None    17003741
+                Genlisea cv. Giant Violacea     None    None    sp.     True    None    None
+34      67018161        2001.0117       None    None    None    None    17003742
+                Genlisea hispidula Stapf        None    None    hispidula       True    None    None
+35      119060768       Z-000023874     Zimbabwe        None    None    None    17969948
+                Genlisea glandulosissima R.E.Fr. (1911) None    None    None    True    None    None
+36      96736744        583652  None    None    None    None    17754763
+                Genlisea lobata Fromm-Trinta    None    None    None    True    None    None
+37      96736745        583806  None    None    None    None    17754763
+                Genlisea lobata Fromm-Trinta    None    None    None    True    None    None
+38      96736673        481755  None    None    None    None    17705522
+                Genlisea aurea St.Hil.  None    None    None    True    None    None
+39      199138191       21393   None    None    None    None    17705522
+                Genlisea aurea St.Hil.  None    None    None    True    None    None
+40      96736731        472040  None    None    None    None    17754752
+                Genlisea margaretae Hutch.      None    None    None    True    None    None
+41      199138209       21392   None    None    None    None    17705522
+                Genlisea aurea St.Hil.  None    None    None    True    None    None
+42      96736743        583651  None    None    None    None    17754763
+                Genlisea lobata Fromm-Trinta    None    None    None    True    None    None
+43      96736734        478909  None    None    None    None    17754752
+                Genlisea margaretae Hutch.      None    None    None    True    None    None
+44      96736671        477018  None    None    None    None    17705522
+                Genlisea aurea St.Hil.  None    None    None    True    None    None
+45      96736672        479894  None    None    None    None    17705522
+                Genlisea aurea St.Hil.  None    None    None    True    None    None
+46      96736733        475745  None    None    None    None    17754754
+                Genlisea hispidula      None    None    None    True    None    None
+47      86324169        93277   Cuba    None    None    None    17095714
+                Genlisea luteo-viridis C. Wright        None    None    luteo-viridis   True    None    None
+48      156180446       93277   Cuba    None    None    None    17095714
+                Genlisea luteo-viridis C. Wright        None    None    luteo-viridis   True    None    None
+49      86323953        93278   Venezuela       None    None    None    17095698
+                Genlisea nigrocaulis Steyermark None    None    nigrocaulis     True    None    None
+50      46944007        733649  Venezuela       None    None    1953-06-21      5684475
+                Genlisea glabra P. Taylor       None    None    glabra  True    1953-06-21      None
+51      125521904       179231  Guyana  None    None    1933-08-30      5684108
+                Genlisea anfractuosa Tutin      None    None    anfractuosa     True    1933-08-30      None
+52      125521673       111446  Cuba    None    None    None    5684063
+                Genlisea luteoviridis C. Wright None    None    luteoviridis    True    None    None
+53      46943536        56285   Guyana  None    None    1933-08-30      5684108
+                Genlisea anfractuosa Tutin      None    None    anfractuosa     True    1933-08-30      None
+54      125521903       179228  Venezuela       None    None    1944-11-01      5683539
+                Genlisea nigrocaulis Steyerm.   None    None    nigrocaulis     True    1944-11-01      None
+55      46943388        553249  Cuba    None    None    None    5684063
+                Genlisea luteoviridis C. Wright None    None    luteoviridis    True    None    None
+56      46942609        445226  Guyana  None    None    None    5683767
+                Genlisea guianensis N. E. Br.   None    None    guianensis      True    None    None
+57      46942486        349951  Venezuela       None    None    1944-11-01      5683539
+                Genlisea nigrocaulis Steyerm.   None    None    nigrocaulis     True    1944-11-01      None
+58      207837835       25104   Benin   None    None    2001-10-08      21809813
+                Genlisea africana Oliv. forma pallida R.E.Fr.   None    None    None    True    2001-10-08      None
+59      168319970       CONN00055216    Suriname        5.41666 -54.98333       None    20720732
+                Utricularia L.  None    None    None    True    None    NorthernHemisphere
+60      93574236        P00569010       mg      None    None    None    17246662
+                Genlisea margaretae     None    None    margaretae      True    None    None
+61      93115186        P00057043       gn      None    None    None    17303810
+                Genlisea barthlottii    None    None    barthlottii     True    None    None
+62      158295516       P00603402       br      None    None    None    19616675
+                Genlisea aurea  None    None    aurea   True    None    None
+63      93115187        P00057044       ao      None    None    None    17303812
+                Genlisea africana       None    None    africana        True    None    None
+64      158295519       P00603405       br      None    None    None    19616675
+                Genlisea aurea  None    None    aurea   True    None    None
+65      158295518       P00603404       br      None    None    None    19616675
+                Genlisea aurea  None    None    aurea   True    None    None
+66      93573990        P00445797       br      None    None    None    17373143
+                Genlisea filiformis     None    None    filiformis      True    None    None
+67      158295517       P00603403       br      None    None    None    19616675
+                Genlisea aurea  None    None    aurea   True    None    None
+68      93115183        P00057042       gn      None    None    None    17303810
+                Genlisea barthlottii    None    None    barthlottii     True    None    None
+69      93573991        P00445799       br      None    None    None    17373143
+                Genlisea filiformis     None    None    filiformis      True    None    None
+70      93574235        P00569009       mg      None    None    None    17246662
+                Genlisea margaretae     None    None    margaretae      True    None    None
+71      158295520       P00603406       br      None    None    None    19616675
+                Genlisea aurea  None    None    aurea   True    None    None
+72      93573989        P00445796       br      None    None    None    17373143
+                Genlisea filiformis     None    None    filiformis      True    None    None
+73      93059589        P0001790        mg      -20.62722       46.54639        1993-11-26      17246662
+                Genlisea margaretae     None    None    margaretae      True    1993-11-26      None
+74      93573988        P00445795       cu      None    None    None    17373143
+                Genlisea filiformis     None    None    filiformis      True    None    None
+75      212264939       E00310840       BR      None    None    None    22066323
+                Genlisea aurea  None    None    aurea   True    None    None
+76      1716525 35978   GY      None    None    1933-08-30      6604718
+                Genlisea filiformis A.St.-Hil.  None    None    None    True    1933-08-30      None
+77      16075108        67091   LBR     None    None    1962-09-04      6537983
+                Genlisea  A.St.-Hil.    None    None    None    True    1962-09-04      None
+78      16075105        48963   GAB     None    None    1997-09-28      6537994
+                Genlisea africana Oliv. None    None    None    True    1997-09-28      None
+79      16075058        127053  LBR     None    None    1966-10-06      6537994
+                Genlisea africana Oliv. None    None    None    True    1966-10-06      None
+80      16075114        85560   LBR     None    None    1969-09-20      6537983
+                Genlisea  A.St.-Hil.    None    None    None    True    1969-09-20      None
+81      16075052        112880  GIN     None    None    1906-08-00      6537987
+                Genlisea barthlottii Porembski &amp; E.Fisch.   None    None    None    True    1906-08-00      None
+82      16075065        150703  GAB     None    None    1997-05-05      6537994
+                Genlisea africana Oliv. None    None    None    True    1997-05-05      None
+83      16075066        154091  LBR     None    None    1947-08-00      6537994
+                Genlisea africana Oliv. None    None    None    True    1947-08-00      None
+84      16075076        203350  LBR     None    None    2004-08-01      6537994
+                Genlisea africana Oliv. None    None    None    True    2004-08-01      None
+85      16075110        79647   GAB     None    None    1987-05-17      6537994
+                Genlisea africana Oliv. None    None    None    True    1987-05-17      None
+86      16075087        225640  LBR     None    None    1968-08-21      6537994
+                Genlisea africana Oliv. None    None    None    True    1968-08-21      None
+87      16075078        205542  LBR     None    None    1970-12-16      6537983
+                Genlisea  A.St.-Hil.    None    None    None    True    1970-12-16      None
+88      16075075        197126  GAB     None    None    2003-12-10      6537994
+                Genlisea africana Oliv. None    None    None    True    2003-12-10      None
+89      16075081        211792  LBR     None    None    1961-09-00      6537994
+                Genlisea africana Oliv. None    None    None    True    1961-09-00      None
+90      16075057        124004  LBR     None    None    1971-12-08      6537983
+                Genlisea  A.St.-Hil.    None    None    None    True    1971-12-08      None
+91      16075103        47071   Ivory Coast     None    None    1974-10-22      6537983
+                Genlisea  A.St.-Hil.    None    None    None    True    1974-10-22      None
+92      16075069        154124  LBR     None    None    1926-11-00      6537994
+                Genlisea africana Oliv. None    None    None    True    1926-11-00      None
+93      16075097        28642   GAB     None    None    1987-01-29      6537994
+                Genlisea africana Oliv. None    None    None    True    1987-01-29      None
+94      16075063        150144  GAB     None    None    1993-06-18      6537994
+                Genlisea africana Oliv. None    None    None    True    1993-06-18      None
+95      16075080        211791  LBR     None    None    1961-09-24      6537994
+                Genlisea africana Oliv. None    None    None    True    1961-09-24      None
+96      16075083        211793  LBR     None    None    1962-09-01      6537994
+                Genlisea africana Oliv. None    None    None    True    1962-09-01      None
+97      16075060        128535  LBR     None    None    1962-08-09      6537994
+                Genlisea africana Oliv. None    None    None    True    1962-08-09      None
+98      125816801       15809   None    None    None    None    18137814
+                Genlisea africana       None    None    africana        True    None    None
+99      125816802       15810   None    None    None    None    18137814
+                Genlisea africana       None    None    africana        True    None    None
+100     157941434       1743667.2142793 Guyana  None    None    1933-08-30      19713940
+                Genlisea anfractuosa    None    None    anfractuosa     True    1933-08-30      None
+101     157941440       47368.2137148   Cuba    None    None    None    19713941
+                Genlisea luteoviridis   None    None    luteoviridis    True    None    None
+102     86323953        93278   Venezuela       None    None    None    17095698
+                Genlisea nigrocaulis Steyermark None    None    nigrocaulis     True    None    None
+103     156180427       93278   Venezuela       None    None    None    17095698
+                Genlisea nigrocaulis Steyermark None    None    nigrocaulis     True    None    None
+104     125816803       15811   None    None    None    None    18137815
+                Genlisea repens None    None    repens  True    None    None
+105     157941435       1743662.2082329 Guyana  None    None    1933-08-30      19713943
+                Genlisea pulchella      None    None    pulchella       True    1933-08-30      None
+106     157941436       1932050.2086261 Venezuela       None    None    1944-09-08      19713944
+                Genlisea sanariapoana   None    None    sanariapoana    True    1944-09-08      None
+107     157941432       1932074.2139033 Venezuela       None    None    1944-11-01      19713942
+                Genlisea nigrocaulis    None    None    nigrocaulis     True    1944-11-01      None
+108     46942359        27804   Guyana  None    None    None    5683340
+                Genlisea roraimensis N. E. Br.  None    None    roraimensis     True    None    None
+109     46943932        667092  Brazil  -12.9667        -41.4667        1980-03-26      5684345
+                Genlisea uncinata P. Taylor &amp; Fromm Trinta  None    None    uncinata        True    1980-03-26      None
+110     46943912        660407  Venezuela       None    None    1944-09-08      5684323
+                Genlisea sanariapoana Steyerm.  None    None    sanariapoana    True    1944-09-08      None
+111     46409994        115720  None    None    None    2001-05-15      6436914
+                Genlisea pygmaea A. Saint-Hilaire       None    None    None    True    2001-05-15      None
+112     46410010        120880  None    None    None    1979-04-18      6436914
+                Genlisea pygmaea A. Saint-Hilaire       None    None    None    True    1979-04-18      None
+113     46409993        115719  None    None    None    2001-05-15      6436914
+                Genlisea pygmaea A. Saint-Hilaire       None    None    None    True    2001-05-15      None
+114     46408711        89943   None    None    None    1989-08-24      6436914
+                Genlisea pygmaea A. Saint-Hilaire       None    None    None    True    1989-08-24      None
+115     46409997        115739  None    None    None    2001-05-15      6436914
+                Genlisea pygmaea A. Saint-Hilaire       None    None    None    True    2001-05-15      None
+116     96736737        481189  None    None    None    None    17754755
+                Genlisea repens None    None    None    True    None    None
+117     96736748        555701  None    None    None    None    17754760
+                Genlisea violacea       None    None    None    True    None    None
+118     96736741        583508  None    None    None    None    17754761
+                Genlisea uncinata Chapaola      None    None    None    True    None    None
+119     96736735        479811  None    None    None    None    17754755
+                Genlisea repens None    None    None    True    None    None
+120     96736740        482992  None    None    None    None    17754760
+                Genlisea violacea       None    None    None    True    None    None
+121     96736736        479895  None    None    None    None    17754756
+                Genlisea pygmaea        None    None    None    True    None    None
+122     96736732        473180  None    None    None    None    17754753
+                Genlisea roraimensis N.E.Br.    None    None    None    True    None    None
+123     96736742        583597  None    None    None    None    17754760
+                Genlisea violacea 'Gigant'      None    None    None    True    None    None
+124     96736739        482412  None    None    None    None    17754760
+                Genlisea violacea       None    None    None    True    None    None
+125     186619796       17797   Sweden  59.370041       18.047104       None    20871689
+                Genlisea violacea St. Hil.      None    None    violacea        True    None    NorthernHemisphere
+126     94639781        3063866 Venezuela       3.68    -65.44  1983-10-10      5912785
+                Genlisea roraimensis N.E. Br.   None    None    roraimensis     True    1983-10-10      NorthernHemisphere
+127     94639753        3059687 Brazil  None    None    1972-01-15      5912788
+                Genlisea pygmaea A. St.-Hil.    None    None    pygmaea True    1972-01-15      None
+128     62755185        498501  Paraguay        None    None    1987-10-01      5912786
+                Genlisea repens Benj.   None    None    repens  True    1987-10-01      None
+129     62756039        1918885 Venezuela       1.95    -67.0   1977-11-30      5912786
+                Genlisea repens Benj.   None    None    repens  True    1977-11-30      NorthernHemisphere
+130     94639762        3061188 Venezuela       None    None    1986-05-26      5912788
+                Genlisea pygmaea A. St.-Hil.    None    None    pygmaea True    1986-05-26      None
+131     94639785        3064010 Venezuela       3.68    -65.44  1983-10-10      5912785
+                Genlisea roraimensis N.E. Br.   None    None    roraimensis     True    1983-10-10      NorthernHemisphere
+132     62755163        498043  Venezuela       3.25    -65.72  1985-03-01      5912785
+                Genlisea roraimensis N.E. Br.   None    None    roraimensis     True    1985-03-01      NorthernHemisphere
+133     94639767        3062071 Venezuela       3.62    -65.38  1985-02-26      5912785
+                Genlisea roraimensis N.E. Br.   None    None    roraimensis     True    1985-02-26      NorthernHemisphere
+134     62755166        498136  Venezuela       0.83    -66.17  1984-03-14      5912786
+                Genlisea repens Benj.   None    None    repens  True    1984-03-14      NorthernHemisphere
+135     94639774        3062596 Venezuela       3.62    -65.35  1981-01-15      5912786
+                Genlisea repens Benj.   None    None    repens  True    1981-01-15      NorthernHemisphere
+136     62755178        498327  Venezuela       1.53    -65.82  1987-10-28      5912786
+                Genlisea repens Benj.   None    None    repens  True    1987-10-28      NorthernHemisphere
+137     94639608        2753487 Gabon   -2.0    9.37    2005-04-29      17736340
+                Genlisea stapfii A. Chev.       None    None    stapfii True    2005-04-29      None
+138     62755978        1839369 Brazil  -0.92   -48.07  1980-03-31      5912788
+                Genlisea pygmaea A. St.-Hil.    None    None    pygmaea True    1980-03-31      None
+139     62755187        498606  Venezuela       3.62    -65.38  1985-02-26      5912785
+                Genlisea roraimensis N.E. Br.   None    None    roraimensis     True    1985-02-26      NorthernHemisphere
+140     62755169        498176  Venezuela       5.87    -62.03  1986-05-26      5912788
+                Genlisea pygmaea A. St.-Hil.    None    None    pygmaea True    1986-05-26      NorthernHemisphere
+141     62755165        498127  Paraguay        -25.42  -55.92  1991-01-12      5912786
+                Genlisea repens Benj.   None    None    repens  True    1991-01-12      None
+142     62755186        498519  Venezuela       3.62    -65.35  1988-10-12      5912785
+                Genlisea roraimensis N.E. Br.   None    None    roraimensis     True    1988-10-12      NorthernHemisphere
+143     62755184        498488  Paraguay        None    None    1987-10-01      5912786
+                Genlisea repens Benj.   None    None    repens  True    1987-10-01      None
+144     94639760        3060427 Brazil  None    None    1973-10-15      5912786
+                Genlisea repens Benj.   None    None    repens  True    1973-10-15      None
+145     94639772        3062276 Venezuela       5.17    -62.12  1983-02-02      5912788
+                Genlisea pygmaea A. St.-Hil.    None    None    pygmaea True    1983-02-02      NorthernHemisphere
+146     62755182        498366  Venezuela       5.22    -60.3   1988-04-12      5912786
+                Genlisea repens Benj.   None    None    repens  True    1988-04-12      NorthernHemisphere
+147     61785497        1914708 Venezuela       1.95    -67.0   1979-04-24      5912786
+                Genlisea repens Benj.   None    None    repens  True    1979-04-24      NorthernHemisphere
+148     94639606        2753372 Gabon   -1.92   9.33    2005-04-26      17736340
+                Genlisea stapfii A. Chev.       None    None    stapfii True    2005-04-26      None
+149     94639789        3064202 Venezuela       None    None    1983-02-02      5912786
+                Genlisea repens Benj.   None    None    repens  True    1983-02-02      None
+150     94639769        3062226 Venezuela       3.67    -65.43  1981-02-16      5912785
+                Genlisea roraimensis N.E. Br.   None    None    roraimensis     True    1981-02-16      NorthernHemisphere
+151     62755176        498290  Venezuela       1.4     -65.63  1987-10-20      5912788
+                Genlisea pygmaea A. St.-Hil.    None    None    pygmaea True    1987-10-20      NorthernHemisphere
+152     94639791        3064203 Venezuela       3.62    -65.38  1985-02-26      5912785
+                Genlisea roraimensis N.E. Br.   None    None    roraimensis     True    1985-02-26      NorthernHemisphere
+153     94639446        2452144 Brazil  None    None    None    5912786
+                Genlisea repens Benj.   None    None    repens  True    None    None
+154     94639776        3062746 Venezuela       5.3     -62.05  1983-02-07      5912786
+                Genlisea repens Benj.   None    None    repens  True    1983-02-07      NorthernHemisphere
+155     62755183        498427  Venezuela       5.22    -60.3   1988-04-10      5912785
+                Genlisea roraimensis N.E. Br.   None    None    roraimensis     True    1988-04-10      NorthernHemisphere
+156     62755188        498695  Venezuela       5.88    -62.05  1986-05-26      5912786
+                Genlisea repens Benj.   None    None    repens  True    1986-05-26      NorthernHemisphere
+157     62755164        498059  Venezuela       0.9     -66.07  1984-02-16      5912786
+                Genlisea repens Benj.   None    None    repens  True    1984-02-16      NorthernHemisphere
+158     94639757        3060142 Venezuela       5.73    -63.69  1977-01-20      5912786
+                Genlisea repens Benj.   None    None    repens  True    1977-01-20      NorthernHemisphere
+159     94639777        3063605 Venezuela       5.3     -62.05  1983-02-07      5912786
+                Genlisea repens Benj.   None    None    repens  True    1983-02-07      NorthernHemisphere
+160     16075050        112039  GIN     None    None    1907-09-00      6537985
+                Genlisea stapfii A.Chev.        None    None    None    True    1907-09-00      None
+161     16075099        3694    GAB     None    None    1994-03-17      6537985
+                Genlisea stapfii A.Chev.        None    None    None    True    1994-03-17      None
+162     16075062        142982  GAB     None    None    1999-12-20      6537985
+                Genlisea stapfii A.Chev.        None    None    None    True    1999-12-20      None
+163     158295527       P00603408       br      None    None    None    19616676
+                Genlisea pygmaea        None    None    pygmaea True    None    None
+164     158295525       P00603407       br      None    None    None    19616676
+                Genlisea pygmaea        None    None    pygmaea True    None    None
+165     93115189        P00057046       gn      None    None    None    17303813
+                Genlisea stapfii        None    None    stapfii True    None    None
+166     158295538       P00603412       br      None    None    None    19616677
+                Genlisea violacea       None    None    violacea        True    None    None
+167     158295529       P00603409       br      None    None    None    19616676
+                Genlisea pygmaea        None    None    pygmaea True    None    None
+168     158295536       P00603411       br      None    None    None    19616677
+                Genlisea violacea       None    None    violacea        True    None    None
+169     93115188        P00057045       gn      None    None    None    17303813
+                Genlisea stapfii        None    None    stapfii True    None    None
+170     158295533       P00603410       br      None    None    None    19616677
+                Genlisea violacea       None    None    violacea        True    None    None
+
+37 of 170 fell inside area "NorthernHemisphere".

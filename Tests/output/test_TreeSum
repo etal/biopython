@@ -1,0 +1,218 @@
+===============================
+Testing TreeSum module, which makes use of revised Bio.Nexus.Trees module
+===============================
+tree a_tree = (((((((((((((((((Sambucus,Viburnum),(Acanthopanax,Aralia,Dendropanax,Evodiopanax,Kalopanax,Schefflera)),Ilex),((((((Catalpa,Paulownia),(Clerodendrum,Premna)),(Chionanthus,Forestiera,Fraxinus,Ligustrum,Osmanthus,Syringa)),(Adina,Cephalanthus,Emmenopterys,Pinckneya,Randia)),Ehretia),Eucommia)),((((Clethra,((Cliftonia,Cyrilla),(Arbutus,Elliottia,Enkianthus,Kalmia,Lyonia,Oxydendrum,Rhododendron,Vaccinium))),(((Halesia,Pterostyrax,Styrax),Symplocos),(Camellia,Franklinia,Gordonia,Stewartia,Ternstroemia))),Diospyros),((Ardisia,Myrsine),Bumelia))),((Alangium,Aucuba,Cornus,Macrocarpium,Torricellia),(Hydrangea,(Davidia,Nyssa)))),Schoepfia),((((Altingia,Liquidambar),(Disanthus,Distylium,Fortuneria,Hamamelis,Loropetalum,Sinowilsonia)),(Cercidiphyllum,Daphniphyllum)),(((((((Choerospondias,Cotinus,Pistacia,Rhus,Toxicodendron),(Acer,Aesculus,Dipteronia,Koelreuteria,Sapindus)),((Cedrela,(Ailanthus,Leitneria,Picrasma)),(Evodia,Phellodendron,Ptelea,Zanthoxylum))),(Firmiana,Tilia)),(Lagerstroemia,Szyzygium)),((((((Alnus,Betula,Carpinus,Corylus,Ostrya),((Carya,Cyclocarya,Juglans,Engelhardtia,Platycarya,Pterocarya),Myrica)),(Castanea,Castanopsis,Cyclobalanopsis,Fagus,Lithocarpus,Quercus)),(((((Celtis,Pteroceltis),((Broussounetia,Cudrania,Maclura,Morus),Oreocnide)),(Aphananthe,Hemiptelea,Planera,Ulmus,Zelkova)),(Hovenia,Rhamnus,Ziziphus)),(((Amelanchier,(Crataegus,Mespilus)),Chaenomeles,Eriobotrya,Malus,Photinia,Pyrus,Sorbus),Prunus))),(Albizia,Cercis,Cladrastis,Dalbergia,Erythrina,Gleditsia,Gymnocladus,Laburnum,Maackia,Ormosia,Robinia,Sophora)),((Euonymus,Sloanea),((Mallotus,Sapium),(Idesia,Poliothyrsis,Populus,Salix,Xylosma))))),(Staphylea,Tapiscia,Turpinia)))),Buxus),Tetracentron),Meliosma),Platanus),Euptelea),((Asimina,(Liriodendron,Magnolia,Manglieita,Michelia)),(Actinodaphne,Cinnamomum,Lindera,Litsea,Machilus,Neolitsea,Nothaphoebe,Persea,Phoebe,Sassafras,Umbellularia))),(Yucca,((Sabal,(Serenoa,Trachycarpus)),(Arundinaria,Phyllostachys,Semiarundinaria)))),Illicium),(((((Cephalotaxus,(Taxus,Torreya)),((((((((Calocedrus,Platycladus),(Cupressus,Juniperus)),Chamaecyparis),(Thuja,Thujopsis)),((Cryptomeria,Taxodium),Glyptostrobus)),((Metasequoia,Sequoia),Sequoiadendron)),Taiwania),Cunninghamia)),Sciadopitys),(((Abies,Keteleeria),(Pseudolarix,Tsuga)),((Larix,Pseudotsuga),(Picea,Pinus)))),Ginkgo));
+
+tree a_tree = (Bovine,(Gibbon,(Orang,(Gorilla,(Chimp,Human)))),Mouse);
+
+tree a_tree = (((((Cephalotaxus,(Taxus,Torreya)),((((((((Calocedrus,Platycladus),(Cupressus,Juniperus)),Chamaecyparis),(Thuja,Thujopsis)),((Cryptomeria,Taxodium),Glyptostrobus)),((Metasequoia,Sequoia),Sequoiadendron)),Taiwania),Cunninghamia)),Sciadopitys),(((Abies,Keteleeria),(Pseudolarix,Tsuga)),((Larix,Pseudotsuga),(Picea,Pinus)))),Ginkgo);
+
+tree a_tree = (Cephalotaxus,(Taxus,Torreya));
+
+tree a_tree = (Cephalotaxus,(Taxus,Torreya));
+
+tree a_tree = (((t9,(t8,t4)),t6),t2,((t0,t7),((t5,t3),t1)));
+
+
+===============================
+Testing TreeSum object, treefunctions.py, and revised Bio.Nexus.Trees module
+===============================
+
+
+Running self.test_Tree()...
+  This runs a series of operations on the TreeSum object (self), and contained tree (self.treeobj) in question, to see if all operations work.
+
+self.treeobj: tree a_tree = (((t9,(t8,t4)),t6),t2,((t0,t7),((t5,t3),t1)));
+self.newickstr: (((t9:0.38583,(t8:0.44514,t4:0.41401):0.02403):0.04144,t6:0.39250):0.02911,t2:0.49767,((t0:0.30117,t7:0.48215):0.02681,((t5:0.09842,t3:0.48858):0.03497,t1:0.13021):0.03183):0.02739)
+
+Printing tree in outline format
+
+Printing out tree of 10 taxa, hierarchical indented format.
+
+Rank #1, label=None, brlen=0.0
+        Rank #2, label=A, brlen=0.0291131
+                Rank #3, label=B, brlen=0.041436
+                        Rank #4, label=t9, brlen=0.385832
+                        Rank #4, label=C, brlen=0.024032
+                                Rank #5, label=t8, brlen=0.445135
+                                Rank #5, label=t4, brlen=0.41401
+                Rank #3, label=t6, brlen=0.392496
+        Rank #2, label=t2, brlen=0.497673
+        Rank #2, label=D, brlen=0.0273876
+                Rank #3, label=E, brlen=0.0268148
+                        Rank #4, label=t0, brlen=0.301171
+                        Rank #4, label=t7, brlen=0.482152
+                Rank #3, label=F, brlen=0.0318288
+                        Rank #4, label=G, brlen=0.0349662
+                                Rank #5, label=t5, brlen=0.0984167
+                                Rank #5, label=t3, brlen=0.488578
+                        Rank #4, label=t1, brlen=0.130208
+TreeSum.__init__(): No treeobj, so creating empty object.
+
+ts_reading_own_newick.list_leaves():
+t9
+t8
+t4
+t6
+t2
+t0
+t7
+t5
+t3
+t1
+
+ts_reading_own_newick.treeobj.display():
+  #                            taxon            prev            succ    brlen blen (sum)  support              comment
+  0                                -            None       [1, 8, 9]      0.0        0.0        -                    -
+  1                                -               0          [2, 7]  0.02911    0.02911        -                    -
+  2                                -               1          [3, 4]  0.04144    0.07055        -                    -
+  3                               t9               2              []  0.38583    0.45638        -                    -
+  4                                -               2          [5, 6]  0.02403    0.09458        -                    -
+  5                               t8               4              []  0.44514    0.53972        -                    -
+  6                               t4               4              []  0.41401    0.50859        -                    -
+  7                               t6               1              []   0.3925    0.42161        -                    -
+  8                               t2               0              []  0.49767    0.49767        -                    -
+  9                                -               0        [10, 13]  0.02739    0.02739        -                    -
+ 10                                -               9        [11, 12]  0.02681     0.0542        -                    -
+ 11                               t0              10              []  0.30117    0.35537        -                    -
+ 12                               t7              10              []  0.48215    0.53635        -                    -
+ 13                                -               9        [14, 17]  0.03183    0.05922        -                    -
+ 14                                -              13        [15, 16]  0.03497    0.09419        -                    -
+ 15                               t5              14              []  0.09842    0.19261        -                    -
+ 16                               t3              14              []  0.48858    0.58277        -                    -
+ 17                               t1              13              []  0.13021    0.18943        -                    -
+
+Root:  0
+
+Calculating ttlPD for tree...
+self.treelength():
+Common ancestor of node 3 & 17
+0
+PD between node 3 & 17
+0.6458055
+
+Calculating phylodistance array
+[[       NaN  0.854999   0.823874   0.819764   0.9540541  0.8117545
+   0.9927355  0.6489804  1.0391417  0.6458055]
+ [       NaN        NaN  0.859145   0.903099   1.0373891  0.8950895
+   1.0760705  0.7323154  1.1224767  0.7291405]
+ [       NaN        NaN        NaN  0.871974   1.0062641  0.8639645
+   1.0449455  0.7011904  1.0913517  0.6980155]
+ [       NaN        NaN        NaN        NaN  0.9192821  0.7769825
+   0.9579635  0.6142084  1.0043697  0.6110335]
+ [       NaN        NaN        NaN        NaN        NaN  0.8530464
+   1.0340274  0.6902723  1.0804336  0.6870974]
+ [       NaN        NaN        NaN        NaN        NaN        NaN
+   0.783323   0.4931975  0.8833588  0.4900226]
+ [       NaN        NaN        NaN        NaN        NaN        NaN
+         NaN  0.6741785  1.0643398  0.6710036]
+ [       NaN        NaN        NaN        NaN        NaN        NaN
+         NaN        NaN  0.5869947  0.2635909]
+ [       NaN        NaN        NaN        NaN        NaN        NaN
+         NaN        NaN        NaN  0.6537522]
+ [       NaN        NaN        NaN        NaN        NaN        NaN
+         NaN        NaN        NaN        NaN]]
+
+Calculating MPD
+original mpd: None
+Calculated MPD: 0.822578188889
+Calculating NRI:
+mean_null_mpd: 0.822578188889
+sd_null_mpd: 5.55111512313e-16
+numnulls: 100
+nri: -1.0
+mpd_pval: 0.241970724519
+
+Calculating MNPD
+original mnpd: None
+Calculated MNPD: 0.7024453
+Calculating NTI:
+mean_null_mnpd: 0.7024453
+sd_null_mnpd: 2.22044604925e-16
+num_mnpd_nulls: 100
+nti: 1.0
+mnpd_pval: 0.241970724519
+
+self.test_Tree() completed without crashes.
+
+Extracting subtree...
+
+list_leafids_to_keep: [11, 12, 15, 16, 17]
+
+Running self.test_Tree()...
+  This runs a series of operations on the TreeSum object (self), and contained tree (self.treeobj) in question, to see if all operations work.
+
+self.treeobj: tree a_tree = ((t0,t7),((t5,t3),t1));
+self.newickstr: ((t0:0.30117,t7:0.48215):0.02681,((t5:0.09842,t3:0.48858):0.03497,t1:0.13021):0.03183)
+
+Printing tree in outline format
+
+Printing out tree of 5 taxa, hierarchical indented format.
+
+Rank #1, label=D, brlen=0.0273876
+        Rank #2, label=E, brlen=0.0268148
+                Rank #3, label=t0, brlen=0.301171
+                Rank #3, label=t7, brlen=0.482152
+        Rank #2, label=F, brlen=0.0318288
+                Rank #3, label=G, brlen=0.0349662
+                        Rank #4, label=t5, brlen=0.0984167
+                        Rank #4, label=t3, brlen=0.488578
+                Rank #3, label=t1, brlen=0.130208
+TreeSum.__init__(): No treeobj, so creating empty object.
+
+ts_reading_own_newick.list_leaves():
+t0
+t7
+t5
+t3
+t1
+
+ts_reading_own_newick.treeobj.display():
+  #                            taxon            prev            succ    brlen blen (sum)  support              comment
+  0                                -            None          [1, 4]      0.0        0.0        -                    -
+  1                                -               0          [2, 3]  0.02681    0.02681        -                    -
+  2                               t0               1              []  0.30117    0.32798        -                    -
+  3                               t7               1              []  0.48215    0.50896        -                    -
+  4                                -               0          [5, 8]  0.03183    0.03183        -                    -
+  5                                -               4          [6, 7]  0.03497     0.0668        -                    -
+  6                               t5               5              []  0.09842    0.16522        -                    -
+  7                               t3               5              []  0.48858    0.55538        -                    -
+  8                               t1               4              []  0.13021    0.16204        -                    -
+
+Root:  0
+
+Calculating ttlPD for tree...
+self.treelength():
+Common ancestor of node 11 & 17
+9
+PD between node 11 & 17
+0.4900226
+
+Calculating phylodistance array
+[[       NaN  0.783323   0.4931975  0.8833588  0.4900226]
+ [       NaN        NaN  0.6741785  1.0643398  0.6710036]
+ [       NaN        NaN        NaN  0.5869947  0.2635909]
+ [       NaN        NaN        NaN        NaN  0.6537522]
+ [       NaN        NaN        NaN        NaN        NaN]]
+
+Calculating MPD
+original mpd: None
+Calculated MPD: 0.65637616
+Calculating NRI:
+mean_null_mpd: 0.8282333472
+sd_null_mpd: 0.08252865189
+numnulls: 100
+nri: 2.08239421418
+mpd_pval: 0.0456331266385
+
+Calculating MNPD
+original mnpd: None
+Calculated MNPD: 0.531776525
+Calculating NTI:
+mean_null_mnpd: 0.76770949225
+sd_null_mnpd: 0.105107229051
+num_mnpd_nulls: 100
+nti: 2.24468829957
+mnpd_pval: 0.0321208054379
+
+self.test_Tree() completed without crashes.
