@@ -268,6 +268,7 @@ PACKAGES = [
     'Bio.Phylo',
     'Bio.UniGene',
     'Bio.Wise',
+    'Bio.Struct', # Added by Joao
     #Other top level packages,
     'BioSQL',
     ]
