@@ -64,7 +64,8 @@ class PDBParser:
         """
 
         if self.QUIET:
-            warnings.simplefilter('ignore')
+            warning_list = warnings.filters[:]
+            warnings.filterwarnings('ignore', category=PDBConstructionWarning)
             
         self.header=None
         self.trailer=None
@@ -80,8 +81,10 @@ class PDBParser:
         structure = self.structure_builder.get_structure()
         if handle_close:
             file.close()
-
-        warnings.resetwarnings()
+        
+        if self.QUIET:
+            warnings.filters = warning_list
+        
         return structure
 
     def get_header(self):
