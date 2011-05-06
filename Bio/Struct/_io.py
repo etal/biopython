@@ -10,10 +10,17 @@ This API follows the same semantics as Biopython's SeqIO and AlignIO.
 
 import os, warnings
 
+# Write-related imports
 from Bio.PDB import PDBIO
+
+supported_o_formats = {
+        'pdb': PDBIO 
+        }
+
+# Read-related imports 
 from Bio.PDB import PDBParser
 
-supported_formats = {
+supported_i_formats = {
         'pdb': PDBParser 
         }
 
@@ -23,7 +30,7 @@ try:
 except ImportError:
     warnings.warn("Missing module MMCIFlex: MMCIF files unsupported.")
 else:
-    supported_formats['mmcif'] = MMCIFParser 
+    supported_i_formats['mmcif'] = MMCIFParser 
 
 # Public Functions
 def read(infile, format='pdb', id=None, **kwargs):
@@ -42,7 +49,7 @@ def read(infile, format='pdb', id=None, **kwargs):
     """
     
     # Get format and instanciate
-    p = supported_formats[format.lower()]
+    p = supported_i_formats[format.lower()]
     Parser = p(**kwargs)
     
     if not id: # Take file name without the extension
@@ -56,3 +63,35 @@ def read(infile, format='pdb', id=None, **kwargs):
     structure = getattr(Parser, 'get_structure')(id, infile)
 
     return structure
+
+def write(structure, ofile, format='pdb', **kwargs):
+    """
+    Writes a structure to a file in a given format.
+    
+    Mandatory Arguments:
+        structure   - Structure Data (SMCRA representation)
+        ofile       - Path to File or File Handle
+
+    Optional Arguments:
+        format  - File Format (e.g. 'pdb')
+    
+    Other specific arguments can be passed as
+    keyworded arguments.
+    """
+
+    w = supported_o_formats[format.lower()]
+    Writer = w(**kwargs)
+    
+    if isinstance(ofile, basestring):
+        of = open(ofile, 'w')
+    else:
+        of = ofile
+    
+    getattr(Writer, 'set_structure')(set_structure)
+    n = getattr(Writer, 'save')(of)
+    
+    if isinstance(ofile, basestring):
+        of.close()
+    
+    return n
+    
