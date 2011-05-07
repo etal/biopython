@@ -24,14 +24,6 @@ supported_i_formats = {
         'pdb': PDBParser 
         }
 
-# Flex is an optional dependency
-try:
-    from Bio.PDB import MMCIFParser
-except ImportError:
-    warnings.warn("Missing module MMCIFlex: MMCIF files unsupported.")
-else:
-    supported_i_formats['mmcif'] = MMCIFParser 
-
 # Public Functions
 def read(infile, format='pdb', id=None, **kwargs):
     """
@@ -49,14 +41,26 @@ def read(infile, format='pdb', id=None, **kwargs):
     """
     
     # Get format and instanciate
+    if format.lower() == 'mmcif':
+        # Flex is an optional dependency
+        try:
+            from Bio.PDB import MMCIFParser
+        except ImportError:
+            message = "Missing module MMCIFlex. Please check the FAQ."
+            raise MissingPythonDependencyError(message)
+        else:
+            supported_i_formats['mmcif'] = MMCIFParser
+    
     p = supported_i_formats[format.lower()]
     Parser = p(**kwargs)
     
     if not id: # Take file name without the extension
-        if not isinstance(infile, basestring):
+        if isinstance(infile, file):
             infile_name = infile.name
-        else:
+        elif isinstance(infile, basestring):
             infile_name = infile
+        else: # StringIO I hope!
+            infile_name = "structure.ext" # Ugly but avoids code redundancy
         ext = infile_name.split('.')[-1]
         id = os.path.basename(infile_name)[:-len(ext)-1]
 
@@ -87,7 +91,7 @@ def write(structure, ofile, format='pdb', **kwargs):
     else:
         of = ofile
     
-    getattr(Writer, 'set_structure')(set_structure)
+    getattr(Writer, 'set_structure')(structure)
     n = getattr(Writer, 'save')(of)
     
     if isinstance(ofile, basestring):
