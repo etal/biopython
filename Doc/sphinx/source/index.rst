@@ -9,7 +9,13 @@ Welcome to Biopython's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
+   :hidden:
+
+    Introduction <self>
+    tutorial/index.rst
+    reference/index.rst
+
 
 Indices and tables
 ==================
