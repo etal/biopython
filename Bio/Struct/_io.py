@@ -55,7 +55,7 @@ def read(infile, format='pdb', id=None, **kwargs):
     Parser = p(**kwargs)
     
     if not id: # Take file name without the extension
-        if isinstance(infile, file):
+        if hasattr(infile, 'name'):
             infile_name = infile.name
         elif isinstance(infile, basestring):
             infile_name = infile
