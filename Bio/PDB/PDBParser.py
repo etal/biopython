@@ -47,8 +47,15 @@ class PDBParser:
         self.header=None
         self.trailer=None
         self.line_counter=0
-        self.PERMISSIVE=PERMISSIVE
-
+        
+        # Permissive Level -> Warning Action
+        set_warnings = { 
+                        0: 'error',
+                        1: 'always',
+                        2: 'ignore'
+                       }
+        
+        self.warn_action = set_warnings[int(PERMISSIVE)]
     # Public methods
 
     def get_structure(self, id, file):
@@ -59,9 +66,9 @@ class PDBParser:
         o file - name of the PDB file OR an open filehandle
         """
 
-        if self.PERMISSIVE == 2:
-            warning_list = warnings.filters[:]
-            warnings.filterwarnings('ignore', category=PDBConstructionWarning)
+        action = self.warn_action
+        warnings_save = warnings.filters[:]
+        warnings.filterwarnings(action, category=PDBConstructionWarning)
             
         self.header=None
         self.trailer=None
@@ -77,10 +84,10 @@ class PDBParser:
         structure = self.structure_builder.get_structure()
         if handle_close:
             file.close()
-        
-        if self.PERMISSIVE == 2:
-            warnings.filters = warning_list
-        
+
+        # Restore warnings to saved state
+        warnings.filters = warnings_save
+
         return structure
 
     def get_header(self):
@@ -174,21 +181,23 @@ class PDBParser:
                     #Should we allow parsing to continue in permissive mode?
                     #If so what coordindates should we default to?  Easier to abort!
                     raise PDBConstructionException(\
-                        "Invalid or missing coordinate(s) at line %i." \
-                        % global_line_counter)
+                        "Line %i. Invalid or missing coordinate(s) at %s:%s:%s." \
+                        % (global_line_counter, resname, resseq, name))
                 coord=numpy.array((x, y, z), 'f')
                 # occupancy & B factor
                 try:
                     occupancy=float(line[54:60])
                 except:
-                    self._handle_PDB_exception("Invalid or missing occupancy",
-                                               global_line_counter)
+                    warnings.warn("Line %i: Invalid or missing occupancy at %s:%s:%s. Defaulting to 0.0\n"
+                                  %(global_line_counter, resname, resseq, name), 
+                                  PDBConstructionWarning)
                     occupancy = 0.0 #Is one or zero a good default?
                 try:
                     bfactor=float(line[60:66])
                 except:
-                    self._handle_PDB_exception("Invalid or missing B factor",
-                                               global_line_counter)
+                    warnings.warn("Line %i: Invalid or missing b-factor at %s:%s:%s. Defaulting to 0.0\n"
+                                  %(global_line_counter, resname, resseq, name), 
+                                  PDBConstructionWarning)
                     bfactor = 0.0 #The PDB use a default of zero if the data is missing
                 segid=line[72:76]
                 element=line[76:78].strip()
@@ -203,22 +212,40 @@ class PDBParser:
                     try:
                         structure_builder.init_residue(resname, hetero_flag, resseq, icode)
                     except PDBConstructionException, message:
-                        self._handle_PDB_exception(message, global_line_counter)
+                        warnings.warn("Line %i: %s\n"
+                                      "Failed to build residue %s:%s"
+                                      %(global_line_counter, message, resname, resseq), 
+                                      PDBConstructionWarning)
                 elif current_residue_id!=residue_id or current_resname!=resname:
                     current_residue_id=residue_id
                     current_resname=resname
                     try:
                         structure_builder.init_residue(resname, hetero_flag, resseq, icode)
                     except PDBConstructionException, message:
-                        self._handle_PDB_exception(message, global_line_counter) 
+                        warnings.warn("Line %i: %s\n"
+                                      "Failed to build residue %s:%s"
+                                      %(global_line_counter, message, resname, resseq), 
+                                      PDBConstructionWarning)
                 # init atom
                 try:
                     structure_builder.init_atom(name, coord, bfactor, occupancy, altloc,
                                                 fullname, serial_number, element)
                 except PDBConstructionException, message:
-                    self._handle_PDB_exception(message, global_line_counter)
+                    warnings.warn("Line %i: %s\n"
+                                  "Failed to build atom %s:%s"
+                                  %(global_line_counter, message, name, serial_number), 
+                                  PDBConstructionWarning)
             elif(record_type=='ANISOU'):
-                anisou=map(float, (line[28:35], line[35:42], line[43:49], line[49:56], line[56:63], line[63:70]))
+                try:
+                    anisou=map(float, (line[28:35], line[35:42], line[43:49], line[49:56], line[56:63], line[63:70]))
+                except ValueError, message:
+                    warnings.warn("Line %i: %s\n"
+                                  "Invalid ANISOU Temperature Factor in atom %s:%s"
+                                  %(global_line_counter, message, name, serial_number), 
+                                  PDBConstructionWarning)
+                    # Defaulting to None seems the best option
+                    anisou = None
+                    continue
                 # U's are scaled by 10^4 
                 anisou_array=(numpy.array(anisou, 'f')/10000.0).astype('f')
                 structure_builder.set_anisou(anisou_array)
@@ -226,8 +253,9 @@ class PDBParser:
                 try:
                     serial_num=int(line[10:14])
                 except:
-                    self._handle_PDB_exception("Invalid or missing model serial number",
-                                               global_line_counter)
+                    message = "Invalid or missing model serial number"
+                    warnings.warn("Line %i: a%s. Defaulting to 0.\n" %(message, global_line_counter), 
+                                    PDBConstructionWarning)
                     serial_num=0
                 structure_builder.init_model(current_model_id,serial_num)
                 current_model_id+=1
@@ -257,24 +285,6 @@ class PDBParser:
         # EOF (does not end in END or CONECT)
         self.line_counter=self.line_counter+local_line_counter
         return []
-
-    def _handle_PDB_exception(self, message, line_counter):
-        """
-        This method catches an exception that occurs in the StructureBuilder
-        object (if PERMISSIVE==1), or raises it again, this time adding the 
-        PDB line number to the error message.
-        """
-        message="%s at line %i." % (message, line_counter)
-        if self.PERMISSIVE:
-            # just print a warning - some residues/atoms may be missing
-            warnings.warn("PDBConstructionException: %s\n"
-                          "Exception ignored.\n"
-                          "Some atoms or residues may be missing in the data structure."
-                          % message, PDBConstructionWarning)
-        else:
-            # exceptions are fatal - raise again with new message (including line nr)
-            raise PDBConstructionException(message)
-
 
 if __name__=="__main__":
 
