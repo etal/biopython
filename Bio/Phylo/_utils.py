@@ -7,7 +7,7 @@
 
 Third-party libraries are loaded when the corresponding function is called.
 """
-__docformat__ = "epytext en"
+__docformat__ = "restructuredtext en"
 
 import math
 import sys
@@ -75,15 +75,6 @@ def draw_graphviz(tree, label_func=str, prog='twopi', args='',
 
     Requires NetworkX, matplotlib, Graphviz and either PyGraphviz or pydot.
 
-    Example:
-
-        >>> import pylab
-        >>> from Bio import Phylo
-        >>> tree = Phylo.read('ex/apaf.xml', 'phyloxml')
-        >>> Phylo.draw_graphviz(tree)
-        >>> pylab.show()
-        >>> pylab.savefig('apaf.png')
-
     The third and fourth parameters apply to Graphviz, and the remaining
     arbitrary keyword arguments are passed directly to networkx.draw(), which
     in turn mostly wraps matplotlib/pylab.  See the documentation for Graphviz
@@ -91,32 +82,46 @@ def draw_graphviz(tree, label_func=str, prog='twopi', args='',
 
     The NetworkX/matplotlib parameters are described in the docstrings for
     networkx.draw() and pylab.scatter(), but the most reasonable options to try
-    are: I{ alpha, node_color, node_size, node_shape, edge_color, style,
-    font_size, font_color, font_weight, font_family }
+    are: *alpha, node_color, node_size, node_shape, edge_color, style,
+    font_size, font_color, font_weight, font_family*
 
-    @param label_func: A function to extract a label from a node. By default
-        this is str(), but you can use a different function to select another
-        string associated with each node. If this function returns None for a
-        node, no label will be shown for that node.
+    :Parameters:
 
-        The label will also be silently skipped if the throws an exception
-        related to ordinary attribute access (LookupError, AttributeError,
-        ValueError); all other exception types will still be raised. This
-        means you can use a lambda expression that simply attempts to look up
-        the desired value without checking if the intermediate attributes are
-        available:
+        label_func : callable
+            A function to extract a label from a node. By default this is str(),
+            but you can use a different function to select another string
+            associated with each node. If this function returns None for a node,
+            no label will be shown for that node.
 
-            >>> Phylo.draw_graphviz(tree, lambda n: n.taxonomies[0].code)
+            The label will also be silently skipped if the throws an exception
+            related to ordinary attribute access (LookupError, AttributeError,
+            ValueError); all other exception types will still be raised. This
+            means you can use a lambda expression that simply attempts to look
+            up the desired value without checking if the intermediate attributes
+            are available:
 
-    @param prog: The Graphviz program to use when rendering the graph. 'twopi'
-        behaves the best for large graphs, reliably avoiding crossing edges, but
-        for moderate graphs 'neato' looks a bit nicer.  For small directed
-        graphs, 'dot' may produce the most normal-looking phylogram, but will
-        cross and distort edges in larger graphs. (The programs 'circo' and
-        'fdp' are not recommended.)
+                >>> Phylo.draw_graphviz(tree, lambda n: n.taxonomies[0].code)
 
-    @param args: String of options passed to the external graphviz program.
-        Normally not needed, but offered here for completeness.
+        prog : string
+            The Graphviz program to use when rendering the graph. 'twopi'
+            behaves the best for large graphs, reliably avoiding crossing edges,
+            but for moderate graphs 'neato' looks a bit nicer.  For small
+            directed graphs, 'dot' may produce the most normal-looking
+            phylogram, but will cross and distort edges in larger graphs. (The
+            programs 'circo' and 'fdp' are not recommended.)
+        args : string
+            Options passed to the external graphviz program.  Normally not
+            needed, but offered here for completeness.
+
+    Example
+    -------
+
+    >>> import pylab
+    >>> from Bio import Phylo
+    >>> tree = Phylo.read('ex/apaf.xml', 'phyloxml')
+    >>> Phylo.draw_graphviz(tree)
+    >>> pylab.show()
+    >>> pylab.savefig('apaf.png')
     """
     try:
         import networkx
@@ -180,8 +185,11 @@ def draw_ascii(tree, file=sys.stdout, column_width=80):
          |__________________________________ Apple
 
 
-    @param file: File handle opened for writing the output drawing.
-    @param column_width: Total number of text columns used by the drawing.
+    :Parameters:
+        file : file-like object
+            File handle opened for writing the output drawing.
+        column_width : int
+            Total number of text columns used by the drawing.
     """
     taxa = tree.get_terminals()
     # Some constants for the drawing calculations
@@ -246,4 +254,110 @@ def draw_ascii(tree, file=sys.stdout, column_width=80):
             line += ' ' + str(taxa[idx/2])
         file.write(line + '\n')
     file.write('\n')
+
+
+def draw(tree, label_func=str, do_show=True, show_confidence=True):
+    """Plot the given tree using matplotlib (or pylab).
+
+    The graphic is a rooted tree, drawn with roughly the same algorithm as
+    draw_ascii.
+
+    :Parameters:
+        label_func : callable
+            A function to extract a label from a node. By default this is str(),
+            but you can use a different function to select another string
+            associated with each node. If this function returns None for a node,
+            no label will be shown for that node.
+    """
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        try:
+            import pylab as plt
+        except ImportError:
+            from Bio import MissingPythonDependencyError
+            raise MissingPythonDependencyError(
+                    "Install matplotlib or pylab if you want to use draw.")
+
+    def get_x_positions(tree):
+        """Create a mapping of each clade to its horizontal position.
+
+        Dict of {clade: x-coord}
+        """
+        depths = tree.depths()
+        # If there are no branch lengths, assume unit branch lengths
+        if not max(depths.itervalues()):
+            depths = tree.depths(unit_branch_lengths=True)
+        return depths
+
+    def get_y_positions(tree):
+        """Create a mapping of each clade to its vertical position.
+
+        Dict of {clade: y-coord}.
+        Coordinates are negative, and integers for tips.
+        """
+        maxheight = tree.count_terminals()
+        # Rows are defined by the tips
+        heights = dict((tip, maxheight - i)
+                for i, tip in enumerate(tree.get_terminals()))
+        # Internal nodes: place at midpoint of children
+        def calc_row(clade):
+            for subclade in clade:
+                if subclade not in heights:
+                    calc_row(subclade)
+            # Closure over heights
+            heights[clade] = (heights[clade.clades[0]] +
+                                heights[clade.clades[-1]]) / 2.0
+        calc_row(tree.root)
+        return heights
+
+    x_posns = get_x_positions(tree)
+    y_posns = get_y_positions(tree)
+
+    def draw_clade(clade, x_start):
+        """Recursively draw a tree, down from the given clade."""
+        x_here = x_posns[clade]
+        y_here = y_posns[clade]
+        # phyloXML-only graphics annotations
+        color = clade.__dict__.get('color') or 'k'
+        lw = clade.__dict__.get('width')
+        # Draw a horizontal line from start to here
+        plt.hlines(y_here, x_start, x_here, color=color, lw=lw)
+        # Add node/taxon labels
+        label = label_func(clade)
+        if label not in (None, clade.__class__.__name__):
+            plt.text(x_here, y_here, ' ' + label,
+                    fontsize=10, verticalalignment='center')
+        # Add confidence
+        if hasattr(clade, 'confidences'):
+            # phyloXML supports multiple confidences
+            conf_label = ' '.join(map(str, map(float, clade.confidences)))
+        elif clade.confidence is not None:
+            conf_label = str(clade.confidence)
+        else:
+            conf_label = None
+        if conf_label:
+            plt.text(x_start, y_here, str(float(clade.confidence)), fontsize=9)
+        if clade.clades:
+            # Draw a vertical line connecting all children
+            y_top = y_posns[clade.clades[0]]
+            y_bot = y_posns[clade.clades[-1]]
+            plt.vlines(x_here, y_bot, y_top, color=color, lw=lw)
+            # Draw descendents
+            for child in clade:
+                draw_clade(child, x_here)
+
+    draw_clade(tree.root, 0)
+    if hasattr(tree, 'name') and tree.name:
+        plt.title(tree.name)
+    plt.xlabel('branch length')
+    plt.ylabel('taxa')
+    # Add margins around the tree to prevent overlapping the axes
+    xmin, xmax = plt.xlim()
+    pad = 0.05 * xmax
+    plt.xlim(-pad, xmax + pad)
+    # Also invert the y-axis (origin at the top)
+    plt.ylim(max(y_posns.itervalues()) + 1, 0)
+    if do_show:
+        plt.show()
 

@@ -5,66 +5,54 @@
 
 """I/O function wrappers for phylogenetic tree formats.
 
-This API follows the same semantics as Biopython's SeqIO and AlignIO.
+This API follows the same semantics as Biopython's `SeqIO` and `AlignIO`.
 """
-__docformat__ = "epytext en"
+__docformat__ = "restructuredtext en"
 
-from Bio.Phylo import BaseTree, NewickIO, NexusIO
-
-# Python 2.4 doesn't have ElementTree, which PhyloXMLIO needs
-try:
-    from Bio.Phylo import PhyloXMLIO
-except ImportError:
-    # TODO: should we issue a warning? the installer will have already whined
-    # raise MissingPythonDependencyError(
-    #         "Install an ElementTree implementation if you want to use "
-    #         "Bio.Phylo to parse phyloXML files.")
-    supported_formats = {
-            'newick':   NewickIO,
-            'nexus':    NexusIO,
-            }
-else:
-    supported_formats = {
-            'newick':   NewickIO,
-            'nexus':    NexusIO,
-            'phyloxml': PhyloXMLIO,
-            }
+from Bio.Phylo import BaseTree, NewickIO, NexusIO, PhyloXMLIO
 
 
-def parse(file, format):
+supported_formats = {
+        'newick':   NewickIO,
+        'nexus':    NexusIO,
+        'phyloxml': PhyloXMLIO,
+        }
+
+
+def parse(file, format, **kwargs):
     """Iteratively parse a file and return each of the trees it contains.
 
     If a file only contains one tree, this still returns an iterable object that
     contains one element.
 
-    Example::
+    Example
+    -------
 
-        >>> trees = parse('../../Tests/PhyloXML/apaf.xml', 'phyloxml')
-        >>> for tree in trees:
-        ...     print tree.rooted
-        True
+    >>> trees = parse('../../Tests/PhyloXML/apaf.xml', 'phyloxml')
+    >>> for tree in trees:
+    ...     print tree.rooted
+    True
     """
     do_close = False
     if isinstance(file, basestring):
         file = open(file, 'r')
         do_close = True
-    # Py2.4 compatibility: this should be in a try/finally block
-    # try:
-    for tree in getattr(supported_formats[format], 'parse')(file):
-        yield tree
-    # finally:
-    if do_close:
-        file.close()
+    try:
+        for tree in getattr(supported_formats[format], 'parse')(file, **kwargs):
+            yield tree
+    finally:
+        if do_close:
+            file.close()
 
 
-def read(file, format):
+def read(file, format, **kwargs):
     """Parse a file in the given format and return a single tree.
 
-    Raises a ValueError if there are zero or multiple trees -- if this occurs,
-    use parse() instead to get the complete sequence of trees.
+    Raises a `ValueError` if there are zero or multiple trees -- if this occurs,
+    use `parse` instead to get the complete sequence of trees.
     """
     try:
-        tree_gen = parse(file, format)
+        tree_gen = parse(file, format, **kwargs)
         tree = tree_gen.next()
     except StopIteration:
         raise ValueError("There are no trees in this file.")

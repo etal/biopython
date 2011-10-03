@@ -1,5 +1,6 @@
 # Copyright 2001 by Gavin E. Crooks.  All rights reserved.
 # Modifications Copyright 2004/2005 James Casbon. All rights Reserved.
+# Modifications Copyright 2010 Jeffrey Finkelstein. All rights reserved.
 #
 # This code is part of the Biopython distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
@@ -151,7 +152,7 @@ def _open_scop_file(scop_dir_path, version, filetype):
     return handle
 
 
-class Scop:
+class Scop(object):
     """The entire SCOP hierarchy.
 
     root -- The root node of the hierarchy 
@@ -515,7 +516,7 @@ class Scop:
         
 
   
-class Node:
+class Node(object):
     """ A node in the Scop hierarchy
 
     sunid  -- SCOP unique identifiers. e.g. '14986'
@@ -673,14 +674,16 @@ class Domain(Node):
         
         n = self
         while n.sunid != 0: #Not root node
-            rec.hierarchy.append( (n.type, str(n.sunid)) )
+            rec.hierarchy[n.type] = str(n.sunid)
             n = n.getParent()
 
-        rec.hierarchy.reverse()
+        # Order does not matter in the hierarchy field. For more info, see
+        # http://scop.mrc-lmb.cam.ac.uk/scop/release-notes.html
+        #rec.hierarchy.reverse()
        
         return rec
             
-class Astral:
+class Astral(object):
     """Abstraction of the ASTRAL database, which has sequences for all the SCOP domains,
     as well as clusterings by percent id or evalue.
     """

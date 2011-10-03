@@ -10,7 +10,8 @@ Classes:
 
 UndoHandle     File object decorator with support for undo-like operations.
 
-StringHandle   Wraps a file object around a string.
+StringHandle   Wraps a file object around a string.  This is now DEPRECATED,
+               and is likely to be removed in a future release of Biopython.
 
 SGMLStripper   Object that strips SGML.  This is now DEPRECATED, and is likely
                to be removed in a future release of Biopython.
@@ -18,7 +19,7 @@ SGMLStripper   Object that strips SGML.  This is now DEPRECATED, and is likely
 """
 import StringIO
 
-class UndoHandle:
+class UndoHandle(object):
     """A Python handle that adds functionality for saving lines.
 
     Saves lines in a LIFO fashion.
@@ -103,7 +104,12 @@ class UndoHandle:
 # I could make this faster by using cStringIO.
 # However, cStringIO (in v1.52) does not implement the
 # readlines method.
-StringHandle = StringIO.StringIO
+class StringHandle(StringIO.StringIO):
+    def __init__(self, buffer=''):
+        import warnings
+        import Bio
+        warnings.warn("This class is deprecated, and is likely to be removed in a future version of Biopython. Please use the class StringIO in the module StringIO in the Python standard library instead", Bio.BiopythonDeprecationWarning)
+        StringIO.StringIO.__init__(self, buffer)
 
 try:
     import sgmllib
@@ -112,7 +118,7 @@ except ImportError:
     #is obsolete
     pass
 else:
-    class SGMLStripper:
+    class SGMLStripper(object):
         """Object to strip SGML tags (OBSOLETE)."""
         class MyParser(sgmllib.SGMLParser):
             def __init__(self):

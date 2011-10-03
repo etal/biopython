@@ -66,6 +66,13 @@ The annotations dictionary also contains any adapter clip positions
     >>> print len(record.annotations["flow_index"])
     219
 
+Note that to convert from a raw reading in flow_values to the corresponding
+homopolymer stretch estimate, the value should be rounded to the nearest 100:
+
+    >>> print [int(round(value, -2)) // 100
+    ...        for value in record.annotations["flow_values"][:10]], '...'
+    [1, 0, 1, 0, 0, 1, 0, 1, 0, 2] ...
+
 As a convenience method, you can read the file with SeqIO format name "sff-trim"
 instead of "sff" to get just the trimmed sequences (without any annotation
 except for the PHRED quality scores):
@@ -145,8 +152,8 @@ region (i.e. the sequence after trimming) starts with AAAGA exactly (the non-
 degenerate bit of this pretend primer):
 
     >>> from Bio import SeqIO
-    >>> records = (record for record in 
-    ...            SeqIO.parse("Roche/E3MFGYR02_random_10_reads.sff","sff") 
+    >>> records = (record for record in
+    ...            SeqIO.parse("Roche/E3MFGYR02_random_10_reads.sff","sff")
     ...            if record.seq[record.annotations["clip_qual_left"]:].startswith("AAAGA"))
     >>> count = SeqIO.write(records, "temp_filtered.sff", "sff")
     >>> print "Selected %i records" % count
@@ -366,7 +373,7 @@ def _sff_find_roche_index(handle):
     and size, and the actual read index offset and size.
 
     Raises a ValueError for unsupported or non-Roche index blocks.
-    """    
+    """
     handle.seek(0)
     header_length, index_offset, index_length, number_of_reads, \
     number_of_flows_per_read, flow_chars, key_sequence \
@@ -449,7 +456,7 @@ def ReadRocheXmlManifest(handle):
     took advantage of this to define their own index block wich also embeds
     an XML manifest string. This is not a publically documented extension to
     the SFF file format, this was reverse engineered.
-    
+
     The handle should be to an SFF file opened in binary mode. This function
     will use the handle seek/tell functions and leave the handle in an
     arbitrary location.
@@ -489,7 +496,7 @@ def _sff_read_roche_index(handle):
     """
     number_of_reads, header_length, index_offset, index_length, xml_offset, \
     xml_size, read_index_offset, read_index_size = _sff_find_roche_index(handle)
-    #Now parse the read index...    
+    #Now parse the read index...
     handle.seek(read_index_offset)
     fmt = ">5B"
     for read in range(number_of_reads):
@@ -564,17 +571,32 @@ def _sff_read_seq_record(handle, number_of_flows_per_read, flow_chars,
         if handle.read(padding).count(_null) != padding:
             raise ValueError("Post quality %i byte padding region contained data" \
                              % padding)
+    #Follow Roche and apply most aggressive of qual and adapter clipping.
+    #Note Roche seems to ignore adapter clip fields when writing SFF,
+    #and uses just the quality clipping values for any clipping.
+    clip_left = max(clip_qual_left, clip_adapter_left)
+    #Right clipping of zero means no clipping
+    if clip_qual_right:
+        if clip_adapter_right:
+            clip_right = min(clip_qual_right, clip_adapter_right)
+        else:
+            #Typical case with Roche SFF files
+            clip_right = clip_qual_right
+    elif clip_adapter_right:
+        clip_right = clip_adapter_right
+    else:
+        clip_right = seq_len
     #Now build a SeqRecord
     if trim:
-        seq = seq[clip_qual_left:clip_qual_right].upper()
-        quals = quals[clip_qual_left:clip_qual_right]
+        seq = seq[clip_left:clip_right].upper()
+        quals = quals[clip_left:clip_right]
         #Don't record the clipping values, flow etc, they make no sense now:
         annotations = {}
     else:
         #This use of mixed case mimics the Roche SFF tool's FASTA output
-        seq = seq[:clip_qual_left].lower() + \
-              seq[clip_qual_left:clip_qual_right].upper() + \
-              seq[clip_qual_right:].lower()
+        seq = seq[:clip_left].lower() + \
+              seq[clip_left:clip_right].upper() + \
+              seq[clip_right:].lower()
         annotations = {"flow_values":struct.unpack(read_flow_fmt, flow_values),
                        "flow_index":struct.unpack(temp_fmt, flow_index),
                        "flow_chars":flow_chars,
@@ -592,7 +614,6 @@ def _sff_read_seq_record(handle, number_of_flows_per_read, flow_chars,
     #record.letter_annotations["phred_quality"] = quals
     dict.__setitem__(record._per_letter_annotations,
                      "phred_quality", quals)
-    #TODO - adaptor clipping
     #Return the record and then continue...
     return record
 
@@ -632,6 +653,33 @@ def _sff_read_raw_record(handle, number_of_flows_per_read):
         raw += pad
     #Return the raw bytes
     return raw
+
+class _AddTellHandle(object):
+    """Wrapper for handles which do not support the tell method (PRIVATE).
+
+    Intended for use with things like network handles where tell (and reverse
+    seek) are not supported. The SFF file needs to track the current offset in
+    order to deal with the index block.
+    """
+    def __init__(self, handle):
+        self._handle = handle
+        self._offset = 0
+
+    def read(self, length):
+        data = self._handle.read(length)
+        self._offset += len(data)
+        return data
+
+    def tell(self):
+        return self._offset
+
+    def seek(self, offset):
+        if offset < self._offset:
+            raise RunTimeError("Can't seek backwards")
+        self._handle.read(offset - self._offset)
+
+    def close(self):
+        return self._handle.close()
 
 
 #This is a generator function!
@@ -684,7 +732,7 @@ def SffIterator(handle, alphabet=Alphabet.generic_dna, trim=False):
     >>> handle.close()
 
     Or, with the trim option:
-        
+
     >>> handle = open("Roche/E3MFGYR02_random_10_reads.sff", "rb")
     >>> for record in SffIterator(handle, trim=True):
     ...     print record.id, len(record)
@@ -707,6 +755,11 @@ def SffIterator(handle, alphabet=Alphabet.generic_dna, trim=False):
     if isinstance(Alphabet._get_base_alphabet(alphabet),
                   Alphabet.RNAAlphabet):
         raise ValueError("Invalid alphabet, SFF files do not hold RNA.")
+    try:
+        assert 0 == handle.tell()
+    except AttributeError:
+        #Probably a network handle or something like that
+        handle = _AddTellHandle(handle)
     header_length, index_offset, index_length, number_of_reads, \
     number_of_flows_per_read, flow_chars, key_sequence \
         = _sff_file_header(handle)
@@ -949,7 +1002,7 @@ class SffWriter(SequenceWriter):
                              1, #the only flowgram format code we support
                              self._flow_chars, self._key_sequence)
         self.handle.write(header + _null*padding)
-        
+
     def write_record(self, record):
         """Write a single additional record to the output file.
 
@@ -1004,7 +1057,7 @@ class SffWriter(SequenceWriter):
                 self._index = None
             else:
                 self._index.append((name, self.handle.tell()))
-        
+
         #the read header format (fixed part):
         #read_header_length     H
         #name_length            H
@@ -1074,7 +1127,7 @@ if __name__ == "__main__":
         assert len(index1) == len(list(SffIterator(open(filename))))
         assert len(index1) == len(list(SffIterator(BytesIO(open(filename,"r").read()))))
         assert len(index1) == len(list(SffIterator(BytesIO(open(filename).read()))))
-                    
+
     sff = list(SffIterator(open(filename, "rb")))
 
     sff2 = list(SffIterator(open("../../Tests/Roche/E3MFGYR02_alt_index_at_end.sff", "rb")))
@@ -1106,7 +1159,7 @@ if __name__ == "__main__":
     for old, new in zip(sff, sff2):
         assert old.id == new.id
         assert str(old.seq) == str(new.seq)
-    
+
     sff_trim = list(SffIterator(open(filename, "rb"), trim=True))
 
     print ReadRocheXmlManifest(open(filename, "rb"))
@@ -1128,7 +1181,7 @@ if __name__ == "__main__":
         print s.id
         #print s.seq
         #print s.letter_annotations["phred_quality"]
-        
+
         assert s.id == f.id == q.id
         assert str(s.seq) == str(f.seq)
         assert s.letter_annotations["phred_quality"] == q.letter_annotations["phred_quality"]

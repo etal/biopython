@@ -62,6 +62,8 @@ def get_emboss_version():
                              universal_newlines=True,
                              shell=(sys.platform!="win32"))
     stdout, stderr = child.communicate()
+    child.stdout.close() #This is both stdout and stderr
+    del child
     assert stderr is None #Send to stdout instead
     for line in stdout.split("\n"):
         if line.strip()=="Reports the current EMBOSS version number":
@@ -82,7 +84,8 @@ def get_emboss_version():
                 % line)
             
 #To avoid confusing known errors from old versions of EMBOSS ...
-if get_emboss_version() < (6,1,0):
+emboss_version = get_emboss_version()
+if emboss_version < (6,1,0):
     raise MissingExternalDependencyError(\
         "Test requires EMBOSS 6.1.0 patch 3 or later.")
     
@@ -244,6 +247,24 @@ class SeqRetSeqIOTests(unittest.TestCase):
         #Check Bio.SeqIO can read EMBOSS seqret output...
         self.check_EMBOSS_to_SeqIO(filename, old_format, skip_formats)
 
+    def test_abi(self):
+        """SeqIO agrees with EMBOSS' Abi to FASTQ conversion."""
+        #This lets use check the id, sequence, and quality scores
+        for filename in ["Abi/3730.ab1", "Abi/empty.ab1"]:
+             old = SeqIO.read(filename, "abi")
+             new = SeqIO.read(emboss_convert(filename, "abi", "fastq-sanger"), "fastq-sanger")
+             if emboss_version == (6,4,0) and new.id == "EMBOSS_001":
+                 #Avoid bug in EMBOSS 6.4.0 (patch forthcoming)
+                 pass
+             else:
+                 self.assertEqual(old.id, new.id)
+             self.assertEqual(str(old.seq), str(new.seq))
+             if emboss_version < (6,3,0) and new.letter_annotations["phred_quality"] == [1]*len(old):
+                 #Apparent bug in EMBOSS 6.2.0.1 on Windows           
+                 pass
+             else:
+                 self.assertEqual(old.letter_annotations, new.letter_annotations)
+
     def test_genbank(self):
         """SeqIO & EMBOSS reading each other's conversions of a GenBank file."""
         self.check_SeqIO_with_EMBOSS("GenBank/cor6_6.gb", "genbank")
@@ -305,8 +326,10 @@ class SeqRetAlignIOTests(unittest.TestCase):
             try:
                 new_aligns = list(AlignIO.parse(handle, new_format))
             except:
+                handle.close()
                 raise ValueError("Can't parse %s file %s in %s format." \
                                  % (old_format, filename, new_format))
+            handle.close()
             try:
                 self.assertTrue(compare_alignments(old_aligns, new_aligns))
             except ValueError, err:

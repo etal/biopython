@@ -134,7 +134,7 @@ class ValidationError(ValueError):
         return "Failed to find tag '%s' in the DTD. To skip all tags that are not represented in the DTD, please call Bio.Entrez.read or Bio.Entrez.parse with validate=False." % self.name
 
 
-class DataHandler:
+class DataHandler(object):
 
     home = os.path.expanduser('~')
     local_dtd_dir = os.path.join(home, '.biopython', 'Bio', 'Entrez', 'DTDs')
@@ -418,14 +418,14 @@ class DataHandler:
             self.structures.update({name: multiple})
 
     def open_dtd_file(self, filename):
-        path = os.path.join(DataHandler.global_dtd_dir, filename)
+        path = os.path.join(DataHandler.local_dtd_dir, filename)
         try:
             handle = open(path, "rb")
         except IOError:
             pass
         else:
             return handle
-        path = os.path.join(DataHandler.local_dtd_dir, filename)
+        path = os.path.join(DataHandler.global_dtd_dir, filename)
         try:
             handle = open(path, "rb")
         except IOError:
@@ -449,8 +449,14 @@ class DataHandler:
         elif urlinfo[0]=='':
             # Then this is a relative path to the DTD.
             # Look at the parent URL to find the full path.
-            url = self.dtd_urls[-1]
-            source = os.path.dirname(url)
+            try:
+                url = self.dtd_urls[-1]
+            except IndexError:
+                # Assume the default URL for DTDs if the top parent
+                # does not contain an absolute path
+                source = "http://www.ncbi.nlm.nih.gov/dtd/"
+            else:
+                source = os.path.dirname(url)
             url = os.path.join(source, systemId)
         self.dtd_urls.append(url)
         # First, try to load the local version of the DTD file

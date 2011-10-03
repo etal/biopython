@@ -8,7 +8,9 @@ from StringIO import StringIO
 from Bio import SeqIO
 from Bio import AlignIO
 from Bio.Align.Generic import Alignment
-from Bio.Align import AlignInfo
+from Bio.Align import AlignInfo, MultipleSeqAlignment
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 
 test_write_read_alignment_formats = sorted(AlignIO._FormatToWriter)
 test_write_read_align_with_seq_count = test_write_read_alignment_formats \
@@ -22,7 +24,7 @@ test_write_read_align_with_seq_count = test_write_read_alignment_formats \
 #
 # Most of the input files are also used by test_SeqIO.py,
 # and by other additional tests as noted below.
-test_files = [ \
+test_files = [
 #Following examples are also used in test_Clustalw.py
     ("clustal", 2, 1, 'Clustalw/cw02.aln'),
     ("clustal", 7, 1, 'Clustalw/opuntia.aln'),
@@ -43,6 +45,7 @@ test_files = [ \
     ("phylip",10, 1, 'Phylip/random.phy'),
     ("phylip", 3, 1, 'Phylip/interlaced.phy'),
     ("phylip", 4, 1, 'Phylip/interlaced2.phy'),
+    ("phylip-relaxed", 12, 1, 'ExtendedPhylip/primates.phyx'),
     ("emboss", 4, 1, 'Emboss/alignret.txt'),
     ("emboss", 2, 5, 'Emboss/needle.txt'),
     ("emboss", 2, 1, 'Emboss/needle_asis.txt'),
@@ -56,6 +59,8 @@ test_files = [ \
     ("fasta-m10", 2, 1, 'Fasta/output004.m10'),
     ("fasta-m10", 2, 1, 'Fasta/output005.m10'),
     ("fasta-m10", 2, 1, 'Fasta/output006.m10'),
+    ("fasta-m10", 2, 9, 'Fasta/output007.m10'),
+    ("fasta-m10", 2, 12,'Fasta/output008.m10'),
     ("ig", 16, 1, 'IntelliGenetics/VIF_mase-pro.txt'),
     ("pir", 2, 1,  'NBRF/clustalw.pir'),
     ]
@@ -101,12 +106,12 @@ def check_simple_write_read(alignments, indent=" "):
         if not records_per_alignment \
         and format not in test_write_read_alignment_formats:
             continue
-        
+
         print indent+"Checking can write/read as '%s' format" % format
-        
+
         #Going to write to a handle...
         handle = StringIO()
-        
+
         try:
             c = AlignIO.write(alignments, handle=handle, format=format)
             assert c == len(alignments)
@@ -165,12 +170,15 @@ def simple_alignment_comparison(alignments, alignments2, format):
 
             #Check the sequence
             assert r1.seq.tostring() == r2.seq.tostring()
-            
+
             #Beware of different quirks and limitations in the
             #valid character sets and the identifier lengths!
             if format=="phylip":
                 assert r1.id.replace("[","").replace("]","")[:10] == r2.id, \
                        "'%s' vs '%s'" % (r1.id, r2.id)
+            elif format=="phylip-relaxed":
+                assert r1.id.replace(" ", "").replace(':', '|') == r2.id, \
+                        "'%s' vs '%s'" % (r1.id, r2.id)
             elif format=="clustal":
                 assert r1.id.replace(" ","_")[:30] == r2.id, \
                        "'%s' vs '%s'" % (r1.id, r2.id)
@@ -183,6 +191,28 @@ def simple_alignment_comparison(alignments, alignments2, format):
                 assert r1.id == r2.id, \
                        "'%s' vs '%s'" % (r1.id, r2.id)
     return True
+
+#Check Phylip files reject duplicate identifiers.
+def check_phylip_reject_duplicate():
+    """
+    Ensure that attempting to write sequences with duplicate IDs after
+    truncation fails for Phylip format.
+    """
+    handle = StringIO()
+    sequences = [SeqRecord(Seq('AAAA'), id='longsequencename1'),
+                 SeqRecord(Seq('AAAA'), id='longsequencename2'),
+                 SeqRecord(Seq('AAAA'), id='other_sequence'),]
+    alignment = MultipleSeqAlignment(sequences)
+    try:
+        # This should raise a ValueError
+        AlignIO.write(alignment, handle, 'phylip')
+        assert False, "Duplicate IDs after truncation are not allowed."
+    except ValueError, e:
+        # Expected - check the error
+        assert "Repeated name 'longsequen'" in str(e)
+
+check_phylip_reject_duplicate()
+
 
 #Check parsers can cope with an empty file
 for t_format in AlignIO._FormatToIterator:
@@ -203,7 +233,7 @@ for t_format in list(AlignIO._FormatToWriter)+list(SeqIO._FormatToWriter):
     handle = StringIO()
     try:
         AlignIO.write([list_of_records], handle, t_format)
-        print False, "Writing non-alignment to %s format should fail!" \
+        assert False, "Writing non-alignment to %s format should fail!" \
             % t_format
     except (TypeError, AttributeError, ValueError):
         pass

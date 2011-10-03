@@ -11,19 +11,11 @@ import tempfile
 import unittest
 from itertools import chain
 
-# Python 2.4 doesn't have ElementTree, which PhyloXMLIO needs
-from Bio import MissingPythonDependencyError
-try:
-    from Bio.Phylo import PhyloXML as PX, PhyloXMLIO
-except ImportError:
-    raise MissingPythonDependencyError(
-            "Install an ElementTree implementation if you want to use "
-            "Bio.Phylo to parse phyloXML files.")
-
 from Bio import Alphabet
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Align import MultipleSeqAlignment
+from Bio.Phylo import PhyloXML as PX, PhyloXMLIO
 
 # Example PhyloXML files
 EX_APAF = 'PhyloXML/apaf.xml'
@@ -261,7 +253,10 @@ class TreeTests(unittest.TestCase):
 
     def test_Confidence(self):
         """Instantiation of Confidence objects."""
-        tree = PhyloXMLIO.parse(EX_MADE).next()
+        #Because we short circult interation, must close handle explicitly
+        handle = open(EX_MADE)
+        tree = PhyloXMLIO.parse(handle).next()
+        handle.close()
         self.assertEqual(tree.name, 'testing confidence')
         for conf, type, val in zip(tree.confidences,
                 ('bootstrap', 'probability'),
@@ -327,7 +322,10 @@ class TreeTests(unittest.TestCase):
 
         Also checks ProteinDomain type.
         """
-        tree = PhyloXMLIO.parse(EX_APAF).next()
+        #Because we short circult interation, must close handle explicitly
+        handle = open(EX_APAF)
+        tree = PhyloXMLIO.parse(handle).next()
+        handle.close()
         clade = tree.clade[0,0,0,0,0,0,0,0,0,0]
         darch = clade.sequences[0].domain_architecture
         self.assertTrue(isinstance(darch, PX.DomainArchitecture))
@@ -395,7 +393,10 @@ class TreeTests(unittest.TestCase):
 
     def test_Reference(self):
         """Instantiation of Reference objects."""
-        tree = PhyloXMLIO.parse(EX_DOLLO).next()
+        #Because we short circult interation, must close handle explicitly
+        handle = open(EX_DOLLO)
+        tree = PhyloXMLIO.parse(handle).next()
+        handle.close()
         reference = tree.clade[0,0,0,0,0,0].references[0]
         self.assertTrue(isinstance(reference, PX.Reference))
         self.assertEqual(reference.doi, '10.1038/nature06614')

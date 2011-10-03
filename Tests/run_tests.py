@@ -64,7 +64,6 @@ DOCTEST_MODULES = ["Bio.Alphabet",
                    "Bio.AlignIO",
                    "Bio.AlignIO.StockholmIO",
                    "Bio.Blast.Applications",
-                   "Bio.Clustalw",
                    "Bio.Emboss.Applications",
                    "Bio.KEGG.Compound",
                    "Bio.KEGG.Enzyme",
@@ -77,6 +76,7 @@ try:
     import numpy
     DOCTEST_MODULES.extend(["Bio.Statistics.lowess",
                             "Bio.PDB.Polypeptide",
+                            "Bio.PDB.Selection"
                             ])
 except ImportError:
     pass
@@ -165,6 +165,9 @@ def main(argv):
         # strip off the .py if it was included
         if args[arg_num][-3:] == ".py":
             args[arg_num] = args[arg_num][:-3]
+
+    print "Python version:", sys.version
+    print "Operating system:", os.name, sys.platform
 
     # run the tests
     runner = TestRunner(args, verbosity)

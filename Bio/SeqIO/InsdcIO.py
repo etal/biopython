@@ -498,7 +498,7 @@ class GenBankWriter(_InsdcWriter):
         if not locus or locus == "<unknown id>":
             locus = self._get_annotation_str(record, "accession", just_first=True)
         if len(locus) > 16:
-            raise ValueError("Locus identifier %s is too long" % repr(locus))
+            raise ValueError("Locus identifier %r is too long" % str(locus))
 
         if len(record) > 99999999999:
             #Currently GenBank only officially support up to 350000, but
@@ -659,9 +659,9 @@ class GenBankWriter(_InsdcWriter):
                 self.handle.write("ORIGIN\n")
             return
 
-        data = self._get_seq_string(record) #Catches sequence being None
+        #Catches sequence being None:
+        data = self._get_seq_string(record).lower()
         seq_len = len(data)
-        #TODO - Should we change the case?
         self.handle.write("ORIGIN\n")
         for line_number in range(0, seq_len, LETTERS_PER_LINE):
             self.handle.write(str(line_number+1).rjust(SEQUENCE_INDENT))
@@ -786,9 +786,9 @@ class EmblWriter(_InsdcWriter):
                 handle.write("SQ   \n")
             return
 
-        data = self._get_seq_string(record) #Catches sequence being None
+        #Catches sequence being None
+        data = self._get_seq_string(record).lower()
         seq_len = len(data)
-        #TODO - Should we change the case?
 
         #Get the base alphabet (underneath any Gapped or StopCodon encoding)
         a = Alphabet._get_base_alphabet(record.seq.alphabet)
@@ -851,11 +851,11 @@ class EmblWriter(_InsdcWriter):
         
         if ";" in accession :
             raise ValueError("Cannot have semi-colon in EMBL accession, %s" \
-                             % repr(accession))
+                             % repr(str(accession)))
         if " " in accession :
             #This is out of practicallity... might it be allowed?
             raise ValueError("Cannot have spaces in EMBL accession, %s" \
-                             % repr(accession))
+                             % repr(str(accession)))
 
         #Get the molecule type
         #TODO - record this explicitly in the parser?

@@ -47,7 +47,6 @@ import re
 
 # other Biopython stuff
 from Bio import SeqFeature
-from Bio.ParserSupport import AbstractConsumer
 from Bio import Entrez
 
 # other Bio.GenBank stuff
@@ -292,7 +291,7 @@ def _split_compound_loc(compound_loc):
         for part in compound_loc.split(","):
             yield part
 
-class Iterator:
+class Iterator(object):
     """Iterator interface to move over a file of GenBank entries one at a time.
     """
     def __init__(self, handle, parser = None):
@@ -337,7 +336,7 @@ class LocationParserError(Exception):
     """
     pass
                                                           
-class FeatureParser:
+class FeatureParser(object):
     """Parse GenBank files into Seq + Feature objects.
     """
     def __init__(self, debug_level = 0, use_fuzziness = 1, 
@@ -368,7 +367,7 @@ class FeatureParser:
         self._scanner.feed(handle, self._consumer)
         return self._consumer.data
 
-class RecordParser:
+class RecordParser(object):
     """Parse GenBank files into Record objects
     """
     def __init__(self, debug_level = 0):
@@ -389,7 +388,7 @@ class RecordParser:
         self._scanner.feed(handle, self._consumer)
         return self._consumer.data
 
-class _BaseGenBankConsumer(AbstractConsumer):
+class _BaseGenBankConsumer(object):
     """Abstract GenBank consumer providing useful general functions.
 
     This just helps to eliminate some duplication in things that most
@@ -403,6 +402,12 @@ class _BaseGenBankConsumer(AbstractConsumer):
 
     def __init__(self):
         pass
+
+    def _unhandled(self, data):
+        pass
+
+    def __getattr__(self, attr):
+        return self._unhandled
 
     def _split_keywords(self, keyword_string):
         """Split a string of keywords into a nice clean list.
@@ -645,9 +650,15 @@ class _FeatureConsumer(_BaseGenBankConsumer):
 
         We'll have to see some real examples to be sure, but based on the
         above example we can expect one reference per line.
+
+        Note that at some point the NCBI have included an extra space, e.g.
+
+        DBLINK      Project: 28471
         """
         #During the transition period with both PROJECT and DBLINK lines,
         #we don't want to add the same cross reference twice.
+        while ": " in content:
+            content = content.replace(": ", ":")
         if content.strip() not in self.data.dbxrefs:
             self.data.dbxrefs.append(content.strip())
 
@@ -797,7 +808,9 @@ class _FeatureConsumer(_BaseGenBankConsumer):
     def title(self, content):
         if self._cur_reference is None:
             import warnings
-            warnings.warn("GenBank TITLE line without REFERENCE line.")
+            from Bio import BiopythonParserWarning
+            warnings.warn("GenBank TITLE line without REFERENCE line.",
+                          BiopythonParserWarning)
         elif self._cur_reference.title:
             self._cur_reference.title += ' ' + content
         else:
@@ -972,6 +985,11 @@ class _FeatureConsumer(_BaseGenBankConsumer):
             cur_feature.location = SeqFeature.FeatureLocation(s,e)
             return
         #Not recognised
+        if "order" in location_line and "join" in location_line:
+            #See Bug 3197
+            msg = 'Combinations of "join" and "order" within the same ' + \
+                  'location (nested operators) are illegal:\n' + location_line
+            raise LocationParserError(msg)
         raise LocationParserError(location_line)
 
     def _add_qualifier(self):
@@ -1091,8 +1109,10 @@ class _FeatureConsumer(_BaseGenBankConsumer):
         and len(sequence) != 0 \
         and self._expected_size != len(sequence):
             import warnings
+            from Bio import BiopythonParserWarning
             warnings.warn("Expected sequence length %i, found %i (%s)." \
-                          % (self._expected_size, len(sequence), self.data.id))
+                          % (self._expected_size, len(sequence), self.data.id),
+                          BiopythonParserWarning)
 
         if self._seq_type:
             # mRNA is really also DNA, since it is actually cDNA
@@ -1111,7 +1131,7 @@ class _FeatureConsumer(_BaseGenBankConsumer):
                 seq_alphabet = IUPAC.protein  # or extended protein?
             # work around ugly GenBank records which have circular or
             # linear but no indication of sequence type
-            elif self._seq_type in ["circular", "linear"]:
+            elif self._seq_type in ["circular", "linear", "unspecified"]:
                 pass
             # we have a bug if we get here
             else:
@@ -1224,7 +1244,9 @@ class _RecordConsumer(_BaseGenBankConsumer):
     def title(self, content):
         if self._cur_reference is None:
             import warnings
-            warnings.warn("GenBank TITLE line without REFERENCE line.")
+            from Bio import BiopythonParserWarning
+            warnings.warn("GenBank TITLE line without REFERENCE line.",
+                          BiopythonParserWarning)
             return
         self._cur_reference.title = content
 

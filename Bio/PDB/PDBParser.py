@@ -18,12 +18,13 @@ from Bio.PDB.parse_pdb_header import _parse_pdb_header_list
 # If PDB spec says "COLUMNS 18-20" this means line[17:20]
 
 
-class PDBParser:
+class PDBParser(object):
     """
     Parse a PDB file and return a Structure object.
     """
 
-    def __init__(self, PERMISSIVE=1, get_header=0, structure_builder=None):
+    def __init__(self, PERMISSIVE=True, get_header=False,
+                 structure_builder=None, QUIET=False):
         """
         The PDB parser call a number of standard methods in an aggregated
         StructureBuilder object. Normally this object is instanciated by the
@@ -32,13 +33,16 @@ class PDBParser:
 
         Arguments:
         
-        o PERMISSIVE - int, if this is 0 exceptions in constructing the
-        SMCRA data structure are fatal. If 1 (DEFAULT), the exceptions are 
-        caught, but some residues or atoms will be missing. THESE EXCEPTIONS 
-        ARE DUE TO PROBLEMS IN THE PDB FILE!. If 2, these exceptions will be 
-        caught but supressed from the output.       
+        o PERMISSIVE - Evaluated as a Boolean. If false, exceptions in
+        constructing the SMCRA data structure are fatal. If true (DEFAULT),
+        the exceptions are caught, but some residues or atoms will be missing.
+        THESE EXCEPTIONS ARE DUE TO PROBLEMS IN THE PDB FILE!.
 
         o structure_builder - an optional user implemented StructureBuilder class. 
+
+        o QUIET - Evaluated as a Boolean. If true, warnings issued in constructing
+        the SMCRA data will be supressed. If false (DEFAULT), they will be shown.
+        These warnings might be indicative of problems in the PDB file!        
         """
         if structure_builder!=None:
             self.structure_builder=structure_builder
@@ -47,15 +51,9 @@ class PDBParser:
         self.header=None
         self.trailer=None
         self.line_counter=0
-        
-        # Permissive Level -> Warning Action
-        set_warnings = { 
-                        0: 'error',
-                        1: 'always',
-                        2: 'ignore'
-                       }
-        
-        self.warn_action = set_warnings[int(PERMISSIVE)]
+        self.PERMISSIVE=bool(PERMISSIVE)
+        self.QUIET=bool(QUIET)
+
     # Public methods
 
     def get_structure(self, id, file):
@@ -66,9 +64,9 @@ class PDBParser:
         o file - name of the PDB file OR an open filehandle
         """
 
-        action = self.warn_action
-        warnings_save = warnings.filters[:]
-        warnings.filterwarnings(action, category=PDBConstructionWarning)
+        if self.QUIET:
+            warning_list = warnings.filters[:]
+            warnings.filterwarnings('ignore', category=PDBConstructionWarning)
             
         self.header=None
         self.trailer=None
@@ -84,10 +82,10 @@ class PDBParser:
         structure = self.structure_builder.get_structure()
         if handle_close:
             file.close()
-
-        # Restore warnings to saved state
-        warnings.filters = warnings_save
-
+        
+        if self.QUIET:
+            warnings.filters = warning_list
+        
         return structure
 
     def get_header(self):
@@ -110,6 +108,7 @@ class PDBParser:
     def _get_header(self, header_coords_trailer):
         "Get the header of the PDB file, return the rest."
         structure_builder=self.structure_builder
+        i = 0
         for i in range(0, len(header_coords_trailer)):
             structure_builder.set_line_counter(i+1)
             line=header_coords_trailer[i]
@@ -188,16 +187,14 @@ class PDBParser:
                 try:
                     occupancy=float(line[54:60])
                 except:
-                    warnings.warn("Line %i: Invalid or missing occupancy at %s:%s:%s. Defaulting to 0.0\n"
-                                  %(global_line_counter, resname, resseq, name), 
-                                  PDBConstructionWarning)
+                    self._handle_PDB_exception("Invalid or missing occupancy",
+                                               global_line_counter)
                     occupancy = 0.0 #Is one or zero a good default?
                 try:
                     bfactor=float(line[60:66])
                 except:
-                    warnings.warn("Line %i: Invalid or missing b-factor at %s:%s:%s. Defaulting to 0.0\n"
-                                  %(global_line_counter, resname, resseq, name), 
-                                  PDBConstructionWarning)
+                    self._handle_PDB_exception("Invalid or missing B factor",
+                                               global_line_counter)
                     bfactor = 0.0 #The PDB use a default of zero if the data is missing
                 segid=line[72:76]
                 element=line[76:78].strip()
@@ -212,29 +209,20 @@ class PDBParser:
                     try:
                         structure_builder.init_residue(resname, hetero_flag, resseq, icode)
                     except PDBConstructionException, message:
-                        warnings.warn("Line %i: %s\n"
-                                      "Failed to build residue %s:%s"
-                                      %(global_line_counter, message, resname, resseq), 
-                                      PDBConstructionWarning)
+                        self._handle_PDB_exception(message, global_line_counter)
                 elif current_residue_id!=residue_id or current_resname!=resname:
                     current_residue_id=residue_id
                     current_resname=resname
                     try:
                         structure_builder.init_residue(resname, hetero_flag, resseq, icode)
                     except PDBConstructionException, message:
-                        warnings.warn("Line %i: %s\n"
-                                      "Failed to build residue %s:%s"
-                                      %(global_line_counter, message, resname, resseq), 
-                                      PDBConstructionWarning)
+                        self._handle_PDB_exception(message, global_line_counter) 
                 # init atom
                 try:
                     structure_builder.init_atom(name, coord, bfactor, occupancy, altloc,
                                                 fullname, serial_number, element)
                 except PDBConstructionException, message:
-                    warnings.warn("Line %i: %s\n"
-                                  "Failed to build atom %s:%s"
-                                  %(global_line_counter, message, name, serial_number), 
-                                  PDBConstructionWarning)
+                    self._handle_PDB_exception(message, global_line_counter)
             elif(record_type=='ANISOU'):
                 try:
                     anisou=map(float, (line[28:35], line[35:42], line[43:49], line[49:56], line[56:63], line[63:70]))
@@ -253,9 +241,8 @@ class PDBParser:
                 try:
                     serial_num=int(line[10:14])
                 except:
-                    message = "Invalid or missing model serial number"
-                    warnings.warn("Line %i: a%s. Defaulting to 0.\n" %(message, global_line_counter), 
-                                    PDBConstructionWarning)
+                    self._handle_PDB_exception("Invalid or missing model serial number",
+                                               global_line_counter)
                     serial_num=0
                 structure_builder.init_model(current_model_id,serial_num)
                 current_model_id+=1
@@ -286,11 +273,29 @@ class PDBParser:
         self.line_counter=self.line_counter+local_line_counter
         return []
 
+    def _handle_PDB_exception(self, message, line_counter):
+        """
+        This method catches an exception that occurs in the StructureBuilder
+        object (if PERMISSIVE), or raises it again, this time adding the 
+        PDB line number to the error message.
+        """
+        message="%s at line %i." % (message, line_counter)
+        if self.PERMISSIVE:
+            # just print a warning - some residues/atoms may be missing
+            warnings.warn("PDBConstructionException: %s\n"
+                          "Exception ignored.\n"
+                          "Some atoms or residues may be missing in the data structure."
+                          % message, PDBConstructionWarning)
+        else:
+            # exceptions are fatal - raise again with new message (including line nr)
+            raise PDBConstructionException(message)
+
+
 if __name__=="__main__":
 
     import sys
 
-    p=PDBParser(PERMISSIVE=1)
+    p=PDBParser(PERMISSIVE=True)
 
     filename = sys.argv[1]
     s=p.get_structure("scr", filename)
