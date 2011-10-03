@@ -756,7 +756,7 @@ class Exposure(unittest.TestCase):
         self.assertEqual(38, residues[-1].xtra["EXP_CN"])
 
 class Atom_Element(unittest.TestCase):
-    """induces Atom Element from Atom Name"""
+    """Deduces Atom Element from Atom Name"""
 
     def setUp(self):
         warnings.simplefilter('ignore', PDBConstructionWarning)
