@@ -10,4 +10,4 @@ See also: U{ http://biopython.org/wiki/Struct }
 
 __docformat__ = "epytext en"
 
-from Bio.Struct._io import read#, write, convert
+from Bio.Struct._io import read, write#, convert
