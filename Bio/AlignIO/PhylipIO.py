@@ -1,4 +1,5 @@
 # Copyright 2006-2011 by Peter Cock.  All rights reserved.
+# Revisions copyright 2011 Brandon Invergo. All rights reserved.
 # This code is part of the Biopython distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
@@ -306,6 +307,136 @@ class RelaxedPhylipIterator(PhylipIterator):
         sequence = sequence.strip().replace(" ", "")
         return seq_id, sequence
 
+
+class SequentialPhylipWriter(SequentialAlignmentWriter):
+    """
+    Sequential Phylip format Writer
+    """
+    def write_alignment(self, alignment, id_width=_PHYLIP_ID_WIDTH):
+        handle = self.handle
+
+        if len(alignment)==0:
+            raise ValueError("Must have at least one sequence")
+        length_of_seqs = alignment.get_alignment_length()
+        for record in alignment:
+            if length_of_seqs != len(record.seq):
+                raise ValueError("Sequences must all be the same length")
+        if length_of_seqs <= 0:
+            raise ValueError("Non-empty sequences are required")
+
+        # Check for repeated identifiers...
+        # Apply this test *after* cleaning the identifiers
+        names = []
+        for record in alignment:
+            name = record.id.strip()
+            #Either remove the banned characters, or map them to something
+            #else like an underscore "_" or pipe "|" character...
+            for char in "[](),":
+                name = name.replace(char,"")
+            for char in ":;":
+                name = name.replace(char,"|")
+            name = name[:id_width]
+            if name in names:
+                raise ValueError("Repeated name %r (originally %r), "
+                                 "possibly due to truncation" \
+                                 % (name, record.id))
+            names.append(name)
+
+        # From experimentation, the use of tabs is not understood by the
+        # EMBOSS suite.  The nature of the expected white space is not
+        # defined in the PHYLIP documentation, simply "These are in free
+        # format, separated by blanks".  We'll use spaces to keep EMBOSS
+        # happy.
+        handle.write(" %i %s\n" % (len(alignment), length_of_seqs))
+        for name, record in zip(names, alignment):
+            sequence = str(record.seq)
+            if "." in sequence:
+                raise ValueError("PHYLIP format no longer allows dots in "
+                                 "sequence")
+            handle.write(name[:id_width].ljust(id_width))
+            # Write the entire sequence to one line (see sequential format
+            # notes in the SequentialPhylipIterator docstring
+            handle.write(sequence)
+            handle.write("\n")
+        
+
+class SequentialPhylipIterator(PhylipIterator):
+    """
+    Sequential Phylip format Iterator
+
+    The sequential format carries the same restrictions as the normal
+    interleaved one, with the difference being that the sequences are listed
+    sequentially, each sequence written in its entirety before the start of
+    the next. According to the PHYLIP documentation for input file formatting,
+    newlines and spaces may optionally be entered at any point in the sequences.
+    """
+    def next(self):
+        handle = self.handle
+
+        try:
+            #Header we saved from when we were parsing
+            #the previous alignment.
+            line = self._header
+            del self._header
+        except AttributeError:
+            line = handle.readline()
+
+        if not line:
+            raise StopIteration
+        line = line.strip()
+        parts = filter(None, line.split())
+        if len(parts)!=2:
+            raise ValueError("First line should have two integers")
+        try:
+            number_of_seqs = int(parts[0])
+            length_of_seqs = int(parts[1])
+        except ValueError:
+            raise ValueError("First line should have two integers")
+
+        assert self._is_header(line)
+
+        if self.records_per_alignment is not None \
+        and self.records_per_alignment != number_of_seqs:
+            raise ValueError("Found %i records in this alignment, told to expect %i" \
+                             % (number_of_seqs, self.records_per_alignment))
+
+        ids = []
+        seqs = []
+
+        # By default, expects STRICT truncation / padding to 10 characters.
+        # Does not require any whitespace between name and seq.
+        for i in xrange(number_of_seqs):
+            line = handle.readline().rstrip()
+            sequence_id, s = self._split_id(line)
+            ids.append(sequence_id)
+            while len(s) < length_of_seqs:
+                # The sequence may be split into multiple lines
+                line = handle.readline().strip()
+                if not line:
+                    break
+                if line == "":
+                    continue
+                s = "".join([s, line.strip().replace(" ", "")])
+                if len(s) > length_of_seqs:
+                    raise ValueError("Found a record of length %i, should be %i" \
+                            % (len(s), length_of_seqs))
+            if "." in s:
+                raise ValueError("PHYLIP format no longer allows dots in sequence")
+            seqs.append(s)
+        while True:
+            # Find other alignments in the file
+            line = handle.readline()
+            if not line:
+                break
+            if self._is_header(line):
+                self._header = line
+                break
+
+        records = (SeqRecord(Seq(s, self.alphabet), \
+                             id=i, name=i, description=i) \
+                   for (i,s) in zip(ids, seqs))
+        return MultipleSeqAlignment(records, self.alphabet)
+        
 
 if __name__=="__main__":
     print "Running short mini-test"

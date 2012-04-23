@@ -30,8 +30,6 @@ Note: This module should be regarded as a prototype only. API changes are likely
       Comments and feature requests are most welcome.
 """
 
-
-from Bio.Pathway.Rep.HashSet import *
 from Bio.Pathway.Rep.MultiGraph import *
 
 
@@ -77,7 +75,7 @@ class Reaction(object):
         for r, value in reactants.iteritems():
             if value == 0:
                 del self.reactants[r]
-        self.catalysts  = HashSet(catalysts).list()
+        self.catalysts  = sorted(set(catalysts))
         self.data       = data
         self.reversible = reversible
 
@@ -160,11 +158,11 @@ class System(object):
     
     def __init__(self, reactions = []):
         """Initializes a new System object."""
-        self.__reactions = HashSet(reactions)
+        self.__reactions = set(reactions)
 
     def __repr__(self):
         """Returns a debugging string representation of self."""
-        return "System(" + ",".join(map(repr,self.__reactions.list())) + ")"
+        return "System(" + ",".join(map(repr,self.__reactions)) + ")"
     
     def __str__(self):
         """Returns a string representation of self."""
@@ -181,14 +179,17 @@ class System(object):
         self.__reactions.remove(reaction)
 
     def reactions(self):
-        """Returns a list of the reactions in this system."""
-        return self.__reactions.list()
+        """Returns a list of the reactions in this system.
+        
+        Note the order is arbitrary!
+        """
+        #TODO - Define __lt__ so that Reactions can be sorted on Python?
+        return list(self.__reactions)
 
     def species(self):
         """Returns a list of the species in this system."""
-        s = HashSet(reduce(lambda s,x: s + x,
-                           [x.species() for x in self.reactions()], []))
-        return s.list()
+        return sorted(set(reduce(lambda s,x: s + x,
+                          [x.species() for x in self.reactions()], [])))
 
     def stochiometry(self):
         """Computes the stoichiometry matrix for self.

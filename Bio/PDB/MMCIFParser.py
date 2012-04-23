@@ -5,7 +5,7 @@
 
 """mmCIF parser (partly implemented in C)."""
 
-from string import letters
+from string import ascii_letters
 
 import numpy
 
@@ -24,6 +24,7 @@ class MMCIFParser(object):
         mmcif_dict=self._mmcif_dict
         atom_id_list=mmcif_dict["_atom_site.label_atom_id"]
         residue_id_list=mmcif_dict["_atom_site.label_comp_id"]
+        element_list = mmcif_dict["_atom_site.type_symbol"]
         seq_id_list=mmcif_dict["_atom_site.label_seq_id"]
         chain_id_list=mmcif_dict["_atom_site.label_asym_id"]
         x_list=map(float, mmcif_dict["_atom_site.Cartn_x"])
@@ -89,8 +90,9 @@ class MMCIFParser(object):
                 structure_builder.init_residue(resname, hetatm_flag, int_resseq, 
                     icode)
             coord=numpy.array((x, y, z), 'f')  
+            element = element_list[i]
             structure_builder.init_atom(name, coord, tempfactor, occupancy, altloc,
-                name)   
+                name, element=element)   
             if aniso_flag==1:
                 u=(aniso_u11[i], aniso_u12[i], aniso_u13[i],
                     aniso_u22[i], aniso_u23[i], aniso_u33[i])
@@ -118,7 +120,7 @@ class MMCIFParser(object):
         """Tries to return the icode. In MMCIF files this is just part of
         resseq! In PDB files, it's a separate field."""
         last_resseq_char=resseq[-1]
-        if last_resseq_char in letters:
+        if last_resseq_char in ascii_letters:
             icode=last_resseq_char
             int_resseq=int(resseq[0:-1])
         else:

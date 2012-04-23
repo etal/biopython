@@ -106,9 +106,9 @@ def draw_graphviz(tree, label_func=str, prog='twopi', args='',
             The Graphviz program to use when rendering the graph. 'twopi'
             behaves the best for large graphs, reliably avoiding crossing edges,
             but for moderate graphs 'neato' looks a bit nicer.  For small
-            directed graphs, 'dot' may produce the most normal-looking
-            phylogram, but will cross and distort edges in larger graphs. (The
-            programs 'circo' and 'fdp' are not recommended.)
+            directed graphs, 'dot' may produce a normal-looking cladogram, but
+            will cross and distort edges in larger graphs. (The programs 'circo'
+            and 'fdp' are not recommended.)
         args : string
             Options passed to the external graphviz program.  Normally not
             needed, but offered here for completeness.
@@ -133,15 +133,10 @@ def draw_graphviz(tree, label_func=str, prog='twopi', args='',
     G = to_networkx(tree)
     Gi = networkx.convert_node_labels_to_integers(G, discard_old_labels=False)
     try:
-        posi = networkx.pygraphviz_layout(Gi, prog, args=args)
+        posi = networkx.graphviz_layout(Gi, prog, args=args)
     except ImportError:
-        try:
-            posi = networkx.pydot_layout(Gi, prog)
-        except ImportError:
-            raise MissingPythonDependencyError(
-                    "Install PyGraphviz or Pydot if you want to use "
-                    "draw_graphviz.")
-    posn = dict((n, posi[Gi.node_labels[n]]) for n in G)
+        raise MissingPythonDependencyError(
+                "Install PyGraphviz or pydot if you want to use draw_graphviz.")
 
     def get_label_mapping(G, selection):
         for node in G.nodes():
@@ -166,6 +161,8 @@ def draw_graphviz(tree, label_func=str, prog='twopi', args='',
         kwargs['width'] = [isinstance(e[2], dict) and
                            e[2].get('width', 1.0) or 1.0
                            for e in G.edges(data=True)]
+
+    posn = dict((n, posi[Gi.node_labels[n]]) for n in G)
     networkx.draw(G, posn, labels=labels, node_color=node_color, **kwargs)
 
 
@@ -256,11 +253,18 @@ def draw_ascii(tree, file=sys.stdout, column_width=80):
     file.write('\n')
 
 
-def draw(tree, label_func=str, do_show=True, show_confidence=True):
+def draw(tree, label_func=str, do_show=True, show_confidence=True,
+        # For power users
+        axes=None, branch_labels=None):
     """Plot the given tree using matplotlib (or pylab).
 
     The graphic is a rooted tree, drawn with roughly the same algorithm as
     draw_ascii.
+
+    Visual aspects of the plot can be modified using pyplot's own functions and
+    objects (via pylab or matplotlib). In particular, the pyplot.rcParams
+    object can be used to scale the font size (rcParams["font.size"]) and line
+    width (rcParams["lines.linewidth"]).
 
     :Parameters:
         label_func : callable
@@ -268,6 +272,21 @@ def draw(tree, label_func=str, do_show=True, show_confidence=True):
             but you can use a different function to select another string
             associated with each node. If this function returns None for a node,
             no label will be shown for that node.
+        do_show : bool
+            Whether to show() the plot automatically.
+        show_confidence : bool
+            Whether to display confidence values, if present on the tree.
+        axes : matplotlib/pylab axes
+            If a valid matplotlib.axes.Axes instance, the phylogram is plotted
+            in that Axes. By default (None), a new figure is created.
+        branch_labels : dict or callable
+            A mapping of each clade to the label that will be shown along the
+            branch leading to it. By default this is the confidence value(s) of
+            the clade, taken from the ``confidence`` attribute, and can be
+            easily toggled off with this function's ``show_confidence`` option.
+            But if you would like to alter the formatting of confidence values,
+            or label the branches with something other than confidence, then use
+            this option.
     """
     try:
         import matplotlib.pyplot as plt
@@ -278,6 +297,30 @@ def draw(tree, label_func=str, do_show=True, show_confidence=True):
             from Bio import MissingPythonDependencyError
             raise MissingPythonDependencyError(
                     "Install matplotlib or pylab if you want to use draw.")
+
+    # Options for displaying branch labels / confidence
+
+    if not branch_labels:
+        if show_confidence:
+            def format_branch_label(clade):
+                if hasattr(clade, 'confidences'):
+                    # phyloXML supports multiple confidences
+                    return '/'.join(str(cnf.value) for cnf in clade.confidences)
+                if clade.confidence:
+                    return str(clade.confidence)
+                return None
+        else:
+            def format_branch_label(clade):
+                return None
+    elif isinstance(branch_labels, dict):
+        def format_branch_label(clade):
+            return branch_labels.get(clade)
+    else:
+        assert callable(branch_labels), \
+                "branch_labels must be either a dict or a callable (function)"
+        format_branch_label = branch_labels
+
+    # Layout
 
     def get_x_positions(tree):
         """Create a mapping of each clade to its horizontal position.
@@ -299,7 +342,7 @@ def draw(tree, label_func=str, do_show=True, show_confidence=True):
         maxheight = tree.count_terminals()
         # Rows are defined by the tips
         heights = dict((tip, maxheight - i)
-                for i, tip in enumerate(tree.get_terminals()))
+                for i, tip in enumerate(reversed(tree.get_terminals())))
         # Internal nodes: place at midpoint of children
         def calc_row(clade):
             for subclade in clade:
@@ -308,56 +351,65 @@ def draw(tree, label_func=str, do_show=True, show_confidence=True):
             # Closure over heights
             heights[clade] = (heights[clade.clades[0]] +
                                 heights[clade.clades[-1]]) / 2.0
-        calc_row(tree.root)
+
+        if tree.root.clades:
+            calc_row(tree.root)
         return heights
 
     x_posns = get_x_positions(tree)
     y_posns = get_y_positions(tree)
+    # The function draw_clade closes over the axes object
+    if axes is None:
+        fig = plt.figure()
+        axes = fig.add_subplot(1, 1, 1)
+    elif not isinstance(axes, plt.matplotlib.axes.Axes):
+        raise ValueError("Invalid argument for axes: %s" % axes)
 
-    def draw_clade(clade, x_start):
+    def draw_clade(clade, x_start, color, lw):
         """Recursively draw a tree, down from the given clade."""
         x_here = x_posns[clade]
         y_here = y_posns[clade]
         # phyloXML-only graphics annotations
-        color = clade.__dict__.get('color') or 'k'
-        lw = clade.__dict__.get('width')
+        if hasattr(clade, 'color') and clade.color is not None:
+            color = clade.color.to_hex()
+        if hasattr(clade, 'width') and clade.width is not None:
+            lw = clade.width * plt.rcParams['lines.linewidth']
         # Draw a horizontal line from start to here
-        plt.hlines(y_here, x_start, x_here, color=color, lw=lw)
+        axes.hlines(y_here, x_start, x_here, color=color, lw=lw)
         # Add node/taxon labels
         label = label_func(clade)
         if label not in (None, clade.__class__.__name__):
-            plt.text(x_here, y_here, ' ' + label,
-                    fontsize=10, verticalalignment='center')
-        # Add confidence
-        if hasattr(clade, 'confidences'):
-            # phyloXML supports multiple confidences
-            conf_label = ' '.join(map(str, map(float, clade.confidences)))
-        elif clade.confidence is not None:
-            conf_label = str(clade.confidence)
-        else:
-            conf_label = None
+            axes.text(x_here, y_here, ' %s' % label, verticalalignment='center')
+        # Add label above the branch (optional)
+        conf_label = format_branch_label(clade)
         if conf_label:
-            plt.text(x_start, y_here, str(float(clade.confidence)), fontsize=9)
+            axes.text(0.5*(x_start + x_here), y_here, conf_label,
+                    fontsize='small', horizontalalignment='center')
         if clade.clades:
             # Draw a vertical line connecting all children
             y_top = y_posns[clade.clades[0]]
             y_bot = y_posns[clade.clades[-1]]
-            plt.vlines(x_here, y_bot, y_top, color=color, lw=lw)
+            # Only apply widths to horizontal lines, like Archaeopteryx
+            axes.vlines(x_here, y_bot, y_top, color=color)
             # Draw descendents
             for child in clade:
-                draw_clade(child, x_here)
+                draw_clade(child, x_here, color, lw)
 
-    draw_clade(tree.root, 0)
+    draw_clade(tree.root, 0, 'k', plt.rcParams['lines.linewidth'])
+
+    # Aesthetics
+
     if hasattr(tree, 'name') and tree.name:
-        plt.title(tree.name)
-    plt.xlabel('branch length')
-    plt.ylabel('taxa')
+        axes.set_title(tree.name)
+    axes.set_xlabel('branch length')
+    axes.set_ylabel('taxa')
     # Add margins around the tree to prevent overlapping the axes
-    xmin, xmax = plt.xlim()
+    xmin, xmax = axes.get_xlim()
     pad = 0.05 * xmax
-    plt.xlim(-pad, xmax + pad)
+    axes.set_xlim(-pad, xmax + pad)
     # Also invert the y-axis (origin at the top)
-    plt.ylim(max(y_posns.itervalues()) + 1, 0)
+    # Add a small vertical margin, but avoid including 0 and N+1 on the y axis
+    axes.set_ylim(max(y_posns.itervalues()) + 0.8, 0.2)
     if do_show:
         plt.show()
 

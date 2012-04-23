@@ -30,7 +30,11 @@ def parse_basics(lines, results):
     multi_models = False
     version_re = re.compile(".+ \(in paml version (\d+\.\d+[a-z]*).*")
     model_re = re.compile("Model:\s+(.+)")
-    codon_freq_re = re.compile("Codon frequency model:\s+(.+)")
+    # In codeml 4.1, the codon substitution model is headed by:
+    # "Codon frequencies:"
+    # In codeml 4.3+ it is headed by:
+    # "Codon frequency model:"
+    codon_freq_re = re.compile("Codon frequenc[a-z\s]{3,7}:\s+(.+)")
     siteclass_re = re.compile("Site-class models:\s*(.*)")
     for line in lines:
         # Find all floating point numbers in this line
@@ -181,7 +185,7 @@ def parse_model(lines, results):
         # Find the estimated trees only taking the tree if it has
         # lengths or rate estimates on the branches
         elif tree_re.match(line) is not None:
-            if ":" in line:
+            if ":" in line or "#" in line:
                 if dS_tree_flag:
                     results["dS tree"] = line.strip()
                     dS_tree_flag = False
@@ -189,11 +193,7 @@ def parse_model(lines, results):
                     results["dN tree"] = line.strip()
                     dN_tree_flag = False
                 elif w_tree_flag:
-                    line_edit = line.replace(" '#", ": ")
-                    line_edit = line_edit.replace("'", "")
-                    line_edit = line_edit.replace(" ,", ",")
-                    line_edit = line_edit.replace(" )", ")")
-                    results["omega tree"] = line_edit.strip()
+                    results["omega tree"] = line.strip()
                     w_tree_flag = False
                 else:
                     results["tree"] = line.strip()

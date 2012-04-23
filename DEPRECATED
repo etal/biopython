@@ -12,6 +12,14 @@ Python 2.4
 No longer supported as of Release 1.59, having triggered a warning since
 Release 1.55, with advance notice in the release notes for Release 1.54.
 
+Bio.Pathway.Rep.HashSet
+=======================
+Deprecated in Release 1.59, use Python's built in set module.
+
+Bio.SeqFeature.WithinPosition and OneOfPosition
+===============================================
+The arguments to create these fuzzy positions changed in Release 1.59.
+
 Bio.Encodings
 =============
 Explicitly declared obsolete in Release 1.55, deprecated in Release 1.56, and
@@ -32,13 +40,14 @@ Bio.GenBank.LocationParser
 ==========================
 This module used to be used for parsing GenBank and EMBL feature locations.
 It has been replaced with faster code using regular expressions, and is no
-longer needed. Declared obsolete in Release 1.55, deprecated in Release 1.56.
+longer needed. Declared obsolete in Release 1.55, deprecated in Release 1.56,
+and removed in Release 1.59.
 
 Bio.Parsers and Bio.Parsers.spark
 =================================
 This module was a copy of John Aycock's SPARK parser included with Biopython
 soley for use in Bio.GenBank.LocationParser. Declared obsolete in Release
-1.55, deprecated in Release 1.56.
+1.55, deprecated in Release 1.56, and removed in Release 1.59.
 
 Bio.Restriction.DNAUtils and check_bases
 ========================================

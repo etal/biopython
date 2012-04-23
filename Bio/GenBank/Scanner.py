@@ -3,19 +3,20 @@
 # This code is part of the Biopython distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-#
-# This code is NOT intended for direct use.  It provides a basic scanner
-# (for use with a event consumer such as Bio.GenBank._FeatureConsumer)
-# to parse a GenBank or EMBL file (with their shared INSDC feature table).
-#
-# It is used by Bio.GenBank to parse GenBank files
-# It is also used by Bio.SeqIO to parse GenBank and EMBL files
-#
-# Feature Table Documentation:
-# http://www.insdc.org/files/feature_table.html
-# http://www.ncbi.nlm.nih.gov/projects/collab/FT/index.html
-# ftp://ftp.ncbi.nih.gov/genbank/docs/
-#
+"""Internal code for parsing GenBank and EMBL files (PRIVATE).
+
+This code is NOT intended for direct use.  It provides a basic scanner
+(for use with a event consumer such as Bio.GenBank._FeatureConsumer)
+to parse a GenBank or EMBL file (with their shared INSDC feature table).
+
+It is used by Bio.GenBank to parse GenBank files
+It is also used by Bio.SeqIO to parse GenBank and EMBL files
+
+Feature Table Documentation:
+http://www.insdc.org/files/feature_table.html
+http://www.ncbi.nlm.nih.gov/projects/collab/FT/index.html
+ftp://ftp.ncbi.nih.gov/genbank/docs/
+"""
 # 17-MAR-2009: added wgs, wgs_scafld for GenBank whole genome shotgun master records.
 # These are GenBank files that summarize the content of a project, and provide lists of
 # scaffold and contig files in the project. These will be in annotations['wgs'] and
@@ -26,11 +27,10 @@
 # Added by Ying Huang & Iddo Friedberg
 
 import warnings
-import os
 import re
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
-from Bio.Alphabet import generic_alphabet, generic_protein
+from Bio.Alphabet import generic_protein
 
 class InsdcScanner(object):
     """Basic functions for breaking up a GenBank/EMBL file into sub sections.
@@ -349,10 +349,12 @@ class InsdcScanner(object):
             consumer.feature_key(feature_key)
             consumer.location(location_string)
             for q_key, q_value in qualifiers:
-                consumer.feature_qualifier_name([q_key])
-                if q_value is not None:
-                    consumer.feature_qualifier_description(q_value.replace("\n"," "))
-                    
+                if q_value is None:
+                    consumer.feature_qualifier(q_key, q_value)
+                else:
+                    consumer.feature_qualifier(q_key, q_value.replace("\n"," "))
+
+
     def _feed_misc_lines(self, consumer, lines):
         """Handle any lines between features and sequence (list of strings), passing data to the consumer
         
@@ -753,7 +755,7 @@ class EmblScanner(InsdcScanner):
             else:
                 if self.debug:
                     print "Ignoring EMBL header line:\n%s" % line
-        
+
     def _feed_misc_lines(self, consumer, lines):
         #TODO - Should we do something with the information on the SQ line(s)?
         lines.append("")
