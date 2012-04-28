@@ -104,8 +104,6 @@ def renumber_residues(container, nstart=1, renum_method='conservative', chain_ga
                     "Input must be either a Biopython Structure, Model, "
                     "Interface or Chain object, or otherwise an iterable of "
                     "Residue objects.")
-        except Exception, e:
-            raise Exception("An unexpected error occured: %s" % e)
 
     # Find & apply renumbering method
     try:
