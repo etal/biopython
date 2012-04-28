@@ -7,6 +7,7 @@
 
 This API follows the same semantics as Biopython's SeqIO and AlignIO.
 """
+__docformat__ = "restructuredtext en"
 
 import os, warnings
 
@@ -14,33 +15,33 @@ import os, warnings
 from Bio.PDB import PDBIO
 
 supported_o_formats = {
-        'pdb': PDBIO 
+        'pdb': PDBIO
         }
 
-# Read-related imports 
+# Read-related imports
 from Bio.PDB import PDBParser
 
 supported_i_formats = {
-        'pdb': PDBParser 
+        'pdb': PDBParser
         }
 
 # Public Functions
 def read(infile, format='pdb', id=None, **kwargs):
-    """
-    Wrapper for Bio.PDB parsers.
-    
-    Mandatory Arguments:
-        file    - Path to File or File Handle
+    """Parse a molecular structure from the given file or handle.
 
-    Optional Arguments:
-        format  - File Format (e.g. 'pdb')
-        sid     - Structure Id to pass to Parser
-    
-    Other parser specific arguments can be passed as
-    keyworded arguments.
+    Wrapper for Bio.PDB parsers.
+
+    Other parser-specific arguments can be passed as keyworded arguments.
+
+    :Parameters:
+        infile : string or file-like object
+            Path to file, or file-like handle
+        format : string (optional)
+            File format. One of 'pdb' or 'mmcif'; default 'pdb'.
+        id : string (optional)
+            Structure Id. Typically the PDB ID, but can be anything.
     """
-    
-    # Get format and instanciate
+    # Get format and instantiate
     if format.lower() == 'mmcif':
         # Flex is an optional dependency
         try:
@@ -50,10 +51,10 @@ def read(infile, format='pdb', id=None, **kwargs):
             raise MissingPythonDependencyError(message)
         else:
             supported_i_formats['mmcif'] = MMCIFParser
-    
+
     p = supported_i_formats[format.lower()]
     Parser = p(**kwargs)
-    
+
     if not id: # Take file name without the extension
         if hasattr(infile, 'name'):
             infile_name = infile.name
@@ -65,37 +66,35 @@ def read(infile, format='pdb', id=None, **kwargs):
         id = os.path.basename(infile_name)[:-len(ext)-1]
 
     structure = getattr(Parser, 'get_structure')(id, infile)
-
     return structure
 
+
 def write(structure, ofile, format='pdb', **kwargs):
-    """
-    Writes a structure to a file in a given format.
-    
-    Mandatory Arguments:
-        structure   - Structure Data (SMCRA representation)
-        ofile       - Path to File or File Handle
+    """Write a structure to a file or handle in the given format.
 
-    Optional Arguments:
-        format  - File Format (e.g. 'pdb')
-    
-    Other specific arguments can be passed as
-    keyworded arguments.
-    """
+    Other writer-specific arguments can be passed as keyworded arguments.
 
+    :Parameters:
+        structure : Bio.PDB.Structure instance
+            Structure Data (SMCRA representation)
+        ofile : string or file-like object
+            Path to file, or file-like handle
+        format : string (optional)
+            File format. Currently, only 'pdb' is supported.
+    """
     w = supported_o_formats[format.lower()]
     Writer = w(**kwargs)
-    
+
     if isinstance(ofile, basestring):
         of = open(ofile, 'w')
     else:
         of = ofile
-    
+
     getattr(Writer, 'set_structure')(structure)
     n = getattr(Writer, 'save')(of)
-    
+
     if isinstance(ofile, basestring):
         of.close()
-    
+
     return n
-    
+
