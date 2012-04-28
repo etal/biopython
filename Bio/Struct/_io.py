@@ -7,10 +7,15 @@
 
 This API follows the same semantics as Biopython's SeqIO and AlignIO.
 """
+
+# For 'with' on Python/Jython 2.5
+from __future__ import with_statement
 __docformat__ = "restructuredtext en"
 
 import os.path
 import warnings
+
+from Bio import File
 
 # Write-related imports
 from Bio.PDB import PDBIO
@@ -84,11 +89,11 @@ def read(infile, format='pdb', id=None, **kwargs):
         id = _file_to_id(infile)
     # Get format and instantiate
     Parser = supported_i_formats[format.lower()](**kwargs)
-    structure = getattr(Parser, 'get_structure')(id, infile)
-    return structure
+    get_structure = getattr(Parser, 'get_structure')
+    return get_structure(id, infile)
 
 
-def write(structure, ofile, format='pdb', **kwargs):
+def write(structure, outfile, format='pdb', **kwargs):
     """Write a structure to a file or handle in the given format.
 
     Other writer-specific arguments can be passed as keyworded arguments.
@@ -96,7 +101,7 @@ def write(structure, ofile, format='pdb', **kwargs):
     :Parameters:
         structure : Bio.PDB.Structure instance
             Structure Data (SMCRA representation)
-        ofile : string or file-like object
+        outfile : string or file-like object
             Path to file, or file-like handle
         format : string (optional)
             File format. Currently, only 'pdb' is supported.
@@ -104,16 +109,9 @@ def write(structure, ofile, format='pdb', **kwargs):
     w = supported_o_formats[format.lower()]
     Writer = w(**kwargs)
 
-    if isinstance(ofile, basestring):
-        of = open(ofile, 'w')
-    else:
-        of = ofile
-
-    getattr(Writer, 'set_structure')(structure)
-    n = getattr(Writer, 'save')(of)
-
-    if isinstance(ofile, basestring):
-        of.close()
-
-    return n
+    with File.as_handle(outfile, 'w') as handle:
+        set_structure = getattr(Writer, 'set_structure')
+        set_structure(structure)
+        save = getattr(Writer, 'save')
+        return save(handle)
 
