@@ -25,7 +25,21 @@ supported_i_formats = {
         'pdb': PDBParser
         }
 
+# Check for an mmCIF parser. It may be missing, either because of an unbuilt C
+# extension (standard lex/yacc) or the pure-Python fallback which depends on the
+# third-party package PLY.
+try:
+    from Bio.PDB import MMCIFParser
+except ImportError:
+    # mmCIF format isn't available, but don't bother the user about it until
+    # it's requested as a format in the read() function (below).
+    pass
+else:
+    supported_i_formats['mmcif'] = MMCIFParser
+
+
 # Public Functions
+
 def read(infile, format='pdb', id=None, **kwargs):
     """Parse a molecular structure from the given file or handle.
 
@@ -41,17 +55,13 @@ def read(infile, format='pdb', id=None, **kwargs):
         id : string (optional)
             Structure Id. Typically the PDB ID, but can be anything.
     """
-    # Get format and instantiate
-    if format.lower() == 'mmcif':
-        # Flex is an optional dependency
-        try:
-            from Bio.PDB import MMCIFParser
-        except ImportError:
-            message = "Missing module MMCIFlex. Please check the FAQ."
-            raise MissingPythonDependencyError(message)
-        else:
-            supported_i_formats['mmcif'] = MMCIFParser
+    if format.lower() == 'mmcif' and 'mmcif' not in supported_i_formats:
+        from Bio import MissingPythonDependencyError
+        raise MissingPythonDependencyError(
+            "Module MMCIParser is missing because of unmet dependencies "
+            "(unbuilt C extension or missing PLY package).")
 
+    # Get format and instantiate
     p = supported_i_formats[format.lower()]
     Parser = p(**kwargs)
 
