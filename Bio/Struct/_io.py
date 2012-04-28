@@ -9,7 +9,8 @@ This API follows the same semantics as Biopython's SeqIO and AlignIO.
 """
 __docformat__ = "restructuredtext en"
 
-import os, warnings
+import os.path
+import warnings
 
 # Write-related imports
 from Bio.PDB import PDBIO
@@ -38,6 +39,24 @@ else:
     supported_i_formats['mmcif'] = MMCIFParser
 
 
+# Helpers
+
+def _file_to_id(path_or_handle):
+    """Take file name without the extension."""
+    if hasattr(path_or_handle, 'name'):
+        # It's a 'file' object that knows its own path
+        full_name = path_or_handle.name
+    elif isinstance(path_or_handle, basestring):
+        # It's a path to a file
+        full_name = path_or_handle
+    else:
+        # File-like stream, e.g. StringIO, pipe or network handle
+        return "<unknown structure>"
+    # Full path -- remove filename extension and directory path
+    no_ext = os.path.splitext(full_name)[0]
+    return os.path.basename(no_ext)
+
+
 # Public Functions
 
 def read(infile, format='pdb', id=None, **kwargs):
@@ -61,20 +80,10 @@ def read(infile, format='pdb', id=None, **kwargs):
             "Module MMCIParser is missing because of unmet dependencies "
             "(unbuilt C extension or missing PLY package).")
 
+    if id is None:
+        id = _file_to_id(infile)
     # Get format and instantiate
-    p = supported_i_formats[format.lower()]
-    Parser = p(**kwargs)
-
-    if not id: # Take file name without the extension
-        if hasattr(infile, 'name'):
-            infile_name = infile.name
-        elif isinstance(infile, basestring):
-            infile_name = infile
-        else: # StringIO I hope!
-            infile_name = "structure.ext" # Ugly but avoids code redundancy
-        ext = infile_name.split('.')[-1]
-        id = os.path.basename(infile_name)[:-len(ext)-1]
-
+    Parser = supported_i_formats[format.lower()](**kwargs)
     structure = getattr(Parser, 'get_structure')(id, infile)
     return structure
 
